@@ -48,7 +48,10 @@ borrowing_policies (one row per membership tier)
 
 ## Running locally
 
-Prerequisites: JDK 17+, Maven, Docker.
+Prerequisites: **JDK 21** (or 17), Maven, Docker.
+
+> Newer JDKs (22+) are not supported yet: Lombok, used by Spring Boot 3.3, fails to compile on them.
+> On macOS with Homebrew: `brew install openjdk@21` and `export JAVA_HOME=/opt/homebrew/opt/openjdk@21`.
 
 ```bash
 docker compose up -d          # starts MySQL on port 3306
