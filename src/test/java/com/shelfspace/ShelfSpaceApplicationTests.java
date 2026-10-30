@@ -1,20 +1,10 @@
 package com.shelfspace;
 
+import com.shelfspace.support.IntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-/** Boots the app against a real MySQL; checks Flyway migrations match the JPA entities. Skipped if Docker isn't running. */
-@SpringBootTest
-@Testcontainers(disabledWithoutDocker = true)
-class ShelfSpaceApplicationTests {
-
-    @Container
-    @ServiceConnection
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.4");
+/** Boots the app against real MySQL: proves Flyway migrations match the JPA entities. */
+class ShelfSpaceApplicationTests extends IntegrationTest {
 
     @Test
     void contextLoads() {

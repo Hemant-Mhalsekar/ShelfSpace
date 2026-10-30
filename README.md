@@ -60,6 +60,30 @@ mvn spring-boot:run           # Flyway creates the tables on startup
 
 Run the tests with `mvn test`. Integration tests use Testcontainers and are skipped if Docker isn't running.
 
+## Authentication
+
+ShelfSpace uses stateless JWT authentication.
+
+| Endpoint | Auth | Description |
+|---|---|---|
+| `POST /api/v1/auth/register` | Public | Create a member account |
+| `POST /api/v1/auth/login` | Public | Returns an access token (15 min) and a refresh token (7 days) |
+| `POST /api/v1/auth/refresh` | Public | Swap a refresh token for a new token pair |
+| `GET /api/v1/auth/me` | Bearer token | Current user's profile |
+
+Send the access token on every request as `Authorization: Bearer <token>`. In Swagger UI, click **Authorize** and paste the token.
+
+### Demo accounts
+
+Created automatically on startup when `SEED_ENABLED=true` (the default for local runs):
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@shelfspace.dev` | `Admin@12345` |
+| Member | `member@shelfspace.dev` | `Member@12345` |
+
+Set `SEED_ENABLED=false` and a strong `JWT_SECRET` in any real deployment.
+
 ## Default borrowing policies
 
 | Tier | Max books | Loan days | Renewals | Fine/day | Fine cap | Blocked above |
@@ -71,7 +95,8 @@ Run the tests with `mvn test`. Integration tests use Testcontainers and are skip
 ## Roadmap
 
 - [x] Project setup, schema, entities, error handling, Swagger
-- [ ] Week 1: JWT auth (register, login, refresh), book and copy CRUD
+- [x] Week 1: JWT auth (register, login, refresh, me), demo accounts
+- [ ] Week 1: book and copy CRUD
 - [ ] Week 2: borrow, return and renew; fines; concurrency test
 - [ ] Week 3: reservations, overdue job, email reminders, dashboards
 - [ ] Week 4: Docker image, GitHub Actions CI, deployment

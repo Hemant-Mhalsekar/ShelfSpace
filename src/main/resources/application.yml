@@ -24,6 +24,13 @@ app:
     secret: ${JWT_SECRET:change-me-to-a-long-random-string-of-at-least-32-bytes}
     access-token-minutes: 15
     refresh-token-days: 7
+  seed:
+    # Demo accounts for local testing. Set SEED_ENABLED=false in production.
+    enabled: ${SEED_ENABLED:true}
+    admin-email: ${SEED_ADMIN_EMAIL:admin@shelfspace.dev}
+    admin-password: ${SEED_ADMIN_PASSWORD:Admin@12345}
+    member-email: ${SEED_MEMBER_EMAIL:member@shelfspace.dev}
+    member-password: ${SEED_MEMBER_PASSWORD:Member@12345}
 
 springdoc:
   swagger-ui:
