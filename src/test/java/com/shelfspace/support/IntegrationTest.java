@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * Skipped automatically when Docker isn't running.
  */
-@SpringBootTest
+@SpringBootTest(properties = "app.scheduling.enabled=false")   // jobs are called directly in tests
 @AutoConfigureMockMvc
 @Testcontainers(disabledWithoutDocker = true)
 public abstract class IntegrationTest {
@@ -99,6 +99,36 @@ public abstract class IntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         return json.readTree(body).get("id").asLong();
+    }
+
+    // ---------- circulation helpers ----------
+
+    protected org.springframework.test.web.servlet.RequestBuilder borrowRequest(TestMember member, long bookId) {
+        return post("/api/v1/loans")
+                .header("Authorization", member.token())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"bookId\": " + bookId + "}");
+    }
+
+    /** Member requests a book; returns the loan id. */
+    protected long requestLoan(TestMember member, long bookId) throws Exception {
+        String body = mockMvc.perform(borrowRequest(member, bookId))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        return json.readTree(body).get("id").asLong();
+    }
+
+    /** Member requests and admin approves; returns the loan id. */
+    protected long issueLoan(TestMember member, long bookId) throws Exception {
+        long loanId = requestLoan(member, bookId);
+        mockMvc.perform(post("/api/v1/loans/{id}/approve", loanId).header("Authorization", adminToken()))
+                .andExpect(status().isOk());
+        return loanId;
+    }
+
+    protected void returnLoan(long loanId) throws Exception {
+        mockMvc.perform(post("/api/v1/loans/{id}/return", loanId).header("Authorization", adminToken()))
+                .andExpect(status().isOk());
     }
 
     /** A random but valid ISBN-13, so tests never collide on the unique ISBN column. */

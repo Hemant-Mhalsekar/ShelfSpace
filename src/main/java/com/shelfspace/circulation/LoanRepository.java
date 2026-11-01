@@ -38,8 +38,28 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
             """)
     Page<Loan> search(@Param("memberId") Long memberId, @Param("status") LoanStatus status, Pageable pageable);
 
+    /** Due dates of copies currently out, soonest first. Used to estimate when a reserved book frees up. */
+    @Query("""
+            SELECT l.dueDate FROM Loan l
+            WHERE l.copy.book.id = :bookId AND l.status IN :statuses AND l.dueDate IS NOT NULL
+            ORDER BY l.dueDate ASC
+            """)
+    List<LocalDate> findDueDatesForBook(@Param("bookId") Long bookId, @Param("statuses") Collection<LoanStatus> statuses);
+
+    @EntityGraph(attributePaths = {"member", "copy", "copy.book"})
+    List<Loan> findByMemberIdAndStatusInOrderByDueDateAsc(Long memberId, Collection<LoanStatus> statuses);
+
+    @EntityGraph(attributePaths = {"member", "copy", "copy.book"})
+    List<Loan> findTop5ByMemberIdAndStatusInOrderByReturnedAtDesc(Long memberId, Collection<LoanStatus> statuses);
+
+    long countByStatusIn(Collection<LoanStatus> statuses);
+
+    long countByStatusInAndDueDateBefore(Collection<LoanStatus> statuses, LocalDate date);
+
+    @EntityGraph(attributePaths = {"member", "copy", "copy.book"})
     List<Loan> findByStatusAndDueDateBefore(LoanStatus status, LocalDate date);
 
+    @EntityGraph(attributePaths = {"member", "copy", "copy.book"})
     List<Loan> findByStatusAndDueDate(LoanStatus status, LocalDate date);
 
     long countByStatus(LoanStatus status);

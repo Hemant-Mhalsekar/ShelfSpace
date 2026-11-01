@@ -138,6 +138,47 @@ Member requests ─▶ REQUESTED (copy ON_HOLD)
 
 **Testable time:** all date logic uses an injected `java.time.Clock`.
 
+## Reservations
+
+```
+No copy available → reserve → WAITING (#1, #2 …)
+Copy freed → next in line → READY (copy ON_HOLD for 48h, member notified)
+   ├─ borrowed in time → FULFILLED
+   ├─ hold runs out    → EXPIRED, copy passes to the next person
+   └─ cancelled        → CANCELLED, copy passes to the next person
+```
+
+| Endpoint | Who | Description |
+|---|---|---|
+| `POST /api/v1/reservations` | Member | Join the queue (only when no copy is available) |
+| `GET /api/v1/reservations/me` | Member | My reservations with queue position and estimated date |
+| `GET /api/v1/reservations/{id}` | Owner/Admin | One reservation |
+| `POST /api/v1/reservations/{id}/cancel` | Owner/Admin | Leave the queue or release a held copy |
+
+Every path that frees a copy (return, reject, cancel, new copies, a repaired copy, an expired hold) goes through one method, `ReservationService.releaseCopy`. It gives the copy to the next member in the queue, so a member who isn't next can never take it. The limits (`max_reservations`, `hold_hours`) are set per tier in `borrowing_policies`.
+
+## Background jobs
+
+| Job | Default schedule | What it does |
+|---|---|---|
+| Overdue check | 00:05 daily | `ISSUED` loans past due become `OVERDUE`, and the member is notified |
+| Due-tomorrow reminders | 09:00 daily | One reminder per loan per day, even if the job runs twice |
+| Hold expiry | Every 15 min | Uncollected holds expire and pass the copy on |
+
+Schedules are set under `app.jobs.*`. Set `SCHEDULING_ENABLED=false` to turn the jobs off; tests do this and call the jobs directly.
+
+## Notifications and dashboards
+
+| Endpoint | Who | Description |
+|---|---|---|
+| `GET /api/v1/notifications/me?unreadOnly=` | Logged in | Alerts: approved/rejected, due soon, overdue, reservation ready, hold expired |
+| `GET /api/v1/notifications/me/unread-count` | Logged in | Number of unread alerts |
+| `POST /api/v1/notifications/{id}/read`, `/me/read-all` | Logged in | Mark one or all as read |
+| `GET /api/v1/dashboard/me` | Member | Books out vs allowed, due soon, overdue, fines, reservations, recent returns |
+| `GET /api/v1/dashboard/admin` | Admin | Inventory, circulation, fines, top 5 books, borrowing over the last 6 months |
+
+All notifications go through `NotificationService`, so adding email later only touches that class.
+
 ### Demo accounts
 
 Created automatically on startup when `SEED_ENABLED=true` (the default for local runs):
@@ -163,7 +204,7 @@ Set `SEED_ENABLED=false` and a strong `JWT_SECRET` in any real deployment.
 - [x] Week 1: JWT auth (register, login, refresh, me), demo accounts
 - [x] Week 1: book and copy CRUD, catalog search
 - [x] Week 2: borrow, return and renew; fines; concurrency test
-- [ ] Week 3: reservations, overdue job, email reminders, dashboards
+- [x] Week 3: reservations, overdue job, reminders (in-app), dashboards
 - [ ] Week 4: Docker image, GitHub Actions CI, deployment
 
 ## Branching

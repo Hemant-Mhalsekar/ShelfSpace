@@ -22,6 +22,8 @@ public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
 
     long countByBookId(Long bookId);
 
+    long countByStatus(CopyStatus status);
+
     boolean existsByBookIdAndStatusIn(Long bookId, Collection<CopyStatus> statuses);
 
     /** Total and available copies for many books in ONE query (avoids N+1 on search pages). */
