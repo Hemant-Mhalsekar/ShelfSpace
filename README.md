@@ -357,6 +357,19 @@ All notifications go through `NotificationService`, so adding email later only t
 
 Rule changes apply to new loans, renewals and fines. Due dates already set don't move.
 
+### Wishlist and recommendations
+
+| Endpoint | Who | Description |
+|---|---|---|
+| `GET /api/v1/wishlist` | Member | Saved books with live availability |
+| `POST /api/v1/wishlist`, `DELETE /api/v1/wishlist/{bookId}` | Member | Save or remove a book (each book once) |
+| `GET /api/v1/books/{id}/recommendations?limit=5` | Logged in | "Readers also borrowed", with each reason |
+| `GET /api/v1/recommendations/me?limit=6` | Logged in | Personal suggestions from your borrowing history |
+
+When a copy goes back on the shelf, and nobody is waiting for it in the reservation queue, members who wishlisted the book get a notification (at most once a day per book).
+
+Recommendations use item-to-item co-occurrence: books borrowed by members who borrowed this one, ranked by how many members borrowed both. The counting is a single grouped SQL query. When there isn't enough history, they fall back to popular books in the same category, then popular overall, then the newest books. Personal suggestions never include books you've borrowed or saved.
+
 ## Default borrowing policies
 
 | Tier | Max books | Loan days | Renewals | Fine/day | Fine cap | Blocked above |
@@ -431,7 +444,7 @@ Other hosts work the same way: the API reads everything from environment variabl
 - [x] Member management and editable borrowing rules
 - [ ] Email notifications (SMTP) behind `NotificationService`
 - [ ] Refresh-token revocation and login rate limiting
-- [ ] Recommendations ("members who borrowed this also borrowed")
+- [x] Wishlist with back-in-stock alerts and "readers also borrowed" recommendations
 - [x] React frontend (member and librarian screens)
 
 ## Branching

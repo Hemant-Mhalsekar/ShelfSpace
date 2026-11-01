@@ -40,15 +40,21 @@ class DashboardIntegrationTest extends IntegrationTest {
 
     @Test
     void adminDashboardShowsMostBorrowedAndMonthlyStats() throws Exception {
+        // Other test classes borrow books too, so borrow ours one more time than the current leader
+        var before = json.readTree(mockMvc.perform(get("/api/v1/dashboard/admin").header("Authorization", adminToken()))
+                .andReturn().getResponse().getContentAsString()).get("mostBorrowed");
+        int leader = before.isEmpty() ? 0 : before.get(0).get("timesBorrowed").asInt();
+        int times = leader + 1;
+
         long popular = newBook(1);
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < times; i++) {
             returnLoan(issueLoan(newMember(), popular));
         }
 
         mockMvc.perform(get("/api/v1/dashboard/admin").header("Authorization", adminToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.mostBorrowed[0].bookId").value(popular))
-                .andExpect(jsonPath("$.mostBorrowed[0].timesBorrowed").value(3))
+                .andExpect(jsonPath("$.mostBorrowed[0].timesBorrowed").value(times))
                 .andExpect(jsonPath("$.borrowsPerMonth.length()").value(6))
                 .andExpect(jsonPath("$.borrowsPerMonth[5].month").value(YearMonth.now().toString()))
                 .andExpect(jsonPath("$.inventory.titles").isNumber())

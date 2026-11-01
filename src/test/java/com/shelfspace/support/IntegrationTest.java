@@ -88,14 +88,19 @@ public abstract class IntegrationTest {
 
     /** Creates a book with the given number of copies (as admin) and returns its id. */
     protected long newBook(int copies) throws Exception {
+        return newBook(copies, "Testing");
+    }
+
+    /** Creates a book in a specific category. */
+    protected long newBook(int copies, String category) throws Exception {
         String body = mockMvc.perform(post("/api/v1/books")
                         .header("Authorization", adminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"title": "Book %s", "author": "Test Author", "isbn": "%s",
-                                 "category": "Testing", "publicationYear": 2020,
+                                 "category": "%s", "publicationYear": 2020,
                                  "replacementCost": 450.00, "initialCopies": %d}
-                                """.formatted(UUID.randomUUID().toString().substring(0, 8), randomIsbn13(), copies)))
+                                """.formatted(UUID.randomUUID().toString().substring(0, 8), randomIsbn13(), category, copies)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         return json.readTree(body).get("id").asLong();
