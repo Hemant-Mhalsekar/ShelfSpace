@@ -130,3 +130,76 @@ export interface ApiErrorBody {
   path: string
   fieldErrors: Record<string, string> | null
 }
+
+// ---------- Admin ----------
+
+export type CopyStatus = 'AVAILABLE' | 'ON_HOLD' | 'BORROWED' | 'LOST' | 'DAMAGED'
+
+export interface Copy {
+  id: number
+  bookId: number
+  barcode: string
+  status: CopyStatus
+  updatedAt: string
+}
+
+export interface BookInput {
+  title: string
+  author: string
+  isbn: string
+  category: string
+  publicationYear: number | null
+  replacementCost: number | null
+  initialCopies?: number
+}
+
+export interface ReturnResult {
+  loan: Loan
+  overdueDays: number
+  fineCharged: number
+}
+
+export interface MemberSummary {
+  id: number
+  name: string
+  email: string
+  phone: string | null
+  role: Role
+  membershipTier: MembershipTier
+  status: 'ACTIVE' | 'SUSPENDED'
+  createdAt: string
+  activeLoans: number
+  overdueLoans: number
+  unpaidFines: number
+}
+
+export interface MemberDetail {
+  member: MemberSummary
+  currentLoans: Loan[]
+  reservations: Reservation[]
+  recentHistory: Loan[]
+}
+
+export interface Policy {
+  membershipTier: MembershipTier
+  maxBooks: number
+  loanDays: number
+  maxRenewals: number
+  finePerDay: number
+  fineCap: number
+  maxUnpaidFines: number
+  maxReservations: number
+  holdHours: number
+  updatedAt: string
+}
+
+export type PolicyInput = Omit<Policy, 'membershipTier' | 'updatedAt'>
+
+export interface AdminDashboard {
+  inventory: { titles: number; copies: number; availableCopies: number; damagedCopies: number; lostCopies: number }
+  circulation: { borrowedNow: number; overdueNow: number; pendingRequests: number; membersWaiting: number }
+  fines: { unpaidTotal: number; collectedThisMonth: number }
+  activeMembers: number
+  mostBorrowed: { bookId: number; title: string; author: string; timesBorrowed: number }[]
+  borrowsPerMonth: { month: string; borrowed: number }[]
+}

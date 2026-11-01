@@ -99,10 +99,12 @@ const statusColor: Record<string, BadgeColor> = {
   REJECTED: 'gray', CANCELLED: 'gray', LOST: 'red',
   WAITING: 'amber', READY: 'green', FULFILLED: 'gray', EXPIRED: 'gray',
   UNPAID: 'red', PAID: 'green', WAIVED: 'gray',
+  AVAILABLE: 'green', BORROWED: 'blue', ON_HOLD: 'amber', DAMAGED: 'amber',
+  ACTIVE: 'green', SUSPENDED: 'red',
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const label = status.charAt(0) + status.slice(1).toLowerCase()
+  const label = (status.charAt(0) + status.slice(1).toLowerCase()).replace('_', ' ')
   return <Badge color={statusColor[status] ?? 'gray'}>{label}</Badge>
 }
 

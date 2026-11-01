@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { notificationsApi } from '../api/endpoints'
+import { adminLoansApi, notificationsApi } from '../api/endpoints'
 import { useAuth } from '../auth/useAuth'
 
 const tierLabel = { STUDENT: 'Student', FACULTY: 'Faculty', GUEST: 'Guest' } as const
@@ -16,23 +16,38 @@ export function Layout() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const links = [
-    { to: '/books', label: 'Catalog' },
-    { to: '/dashboard', label: 'My dashboard' },
-    { to: '/fines', label: 'My fines' },
-  ]
+  const isAdmin = user?.role === 'ADMIN'
+  const links = isAdmin
+    ? [
+        { to: '/admin', label: 'Dashboard', end: true },
+        { to: '/admin/loans', label: 'Loan desk', badge: true },
+        { to: '/admin/books', label: 'Books' },
+        { to: '/admin/members', label: 'Members' },
+        { to: '/admin/fines', label: 'Fines' },
+        { to: '/admin/rules', label: 'Rules' },
+        { to: '/books', label: 'Catalog' },
+      ]
+    : [
+        { to: '/books', label: 'Catalog' },
+        { to: '/dashboard', label: 'My dashboard' },
+        { to: '/fines', label: 'My fines' },
+      ]
 
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
-          <Link to="/books" className="flex items-center gap-2 font-bold text-slate-900">
+          <Link to="/" className="flex items-center gap-2 font-bold text-slate-900">
             <img src="/favicon.svg" alt="" className="size-7" />
             ShelfSpace
           </Link>
 
-          <nav className="ml-4 hidden gap-1 md:flex">
-            {links.map((l) => <NavLink key={l.to} to={l.to} className={navLinkClass}>{l.label}</NavLink>)}
+          <nav className="ml-4 hidden gap-1 lg:flex">
+            {links.map((l) => (
+              <NavLink key={l.to} to={l.to} end={'end' in l} className={navLinkClass}>
+                {l.label}{'badge' in l && <PendingBadge />}
+              </NavLink>
+            ))}
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
@@ -48,7 +63,7 @@ export function Layout() {
               Log out
             </button>
             <button
-              className="rounded-md p-2 text-slate-600 hover:bg-slate-100 md:hidden"
+              className="rounded-md p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
               aria-label="Menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((o) => !o)}
@@ -58,9 +73,11 @@ export function Layout() {
           </div>
         </div>
         {menuOpen && (
-          <nav className="flex flex-col gap-1 border-t border-slate-200 px-4 py-2 md:hidden">
+          <nav className="flex flex-col gap-1 border-t border-slate-200 px-4 py-2 lg:hidden">
             {links.map((l) => (
-              <NavLink key={l.to} to={l.to} className={navLinkClass} onClick={() => setMenuOpen(false)}>{l.label}</NavLink>
+              <NavLink key={l.to} to={l.to} end={'end' in l} className={navLinkClass} onClick={() => setMenuOpen(false)}>
+                {l.label}{'badge' in l && <PendingBadge />}
+              </NavLink>
             ))}
           </nav>
         )}
@@ -98,4 +115,16 @@ function NotificationBell() {
       )}
     </Link>
   )
+}
+
+/** Number of borrow requests waiting for a librarian. */
+function PendingBadge() {
+  const { data } = useQuery({
+    queryKey: ['loans', 'admin', 'pending-count'],
+    queryFn: () => adminLoansApi.search({ status: 'REQUESTED' }),
+    refetchInterval: 60_000,
+  })
+  const n = data?.totalElements ?? 0
+  if (!n) return null
+  return <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{n}</span>
 }
