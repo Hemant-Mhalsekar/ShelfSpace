@@ -21,7 +21,8 @@ spring:
     locations: classpath:db/migration
 
 server:
-  port: 8080
+  port: ${PORT:8080}   # hosting platforms set PORT
+  forward-headers-strategy: framework
 
 app:
   jwt:
