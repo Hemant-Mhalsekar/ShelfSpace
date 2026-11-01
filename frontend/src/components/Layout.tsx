@@ -30,6 +30,7 @@ export function Layout() {
     : [
         { to: '/books', label: 'Catalog' },
         { to: '/dashboard', label: 'My dashboard' },
+        { to: '/wishlist', label: 'Wishlist' },
         { to: '/fines', label: 'My fines' },
       ]
 

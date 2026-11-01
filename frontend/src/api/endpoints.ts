@@ -2,7 +2,7 @@ import { api } from './client'
 import type {
   AdminDashboard, AuthResponse, Book, BookInput, Copy, CopyStatus, Fine, FineStatus, FineSummary, Loan, LoanStatus,
   MemberDashboard, MemberDetail, MemberSummary, MembershipTier, Notification, Page, Policy, PolicyInput,
-  Reservation, ReturnResult, Role, User,
+  Recommendation, Reservation, ReturnResult, Role, User, WishlistItem,
 } from './types'
 
 function query(params: Record<string, string | number | boolean | undefined | null>) {
@@ -116,4 +116,15 @@ export const adminFinesApi = {
     api<Page<Fine>>(`/fines${query({ ...p, size: 20 })}`),
   pay: (id: number) => api<Fine>(`/fines/${id}/pay`, { method: 'POST' }),
   waive: (id: number, note: string) => api<Fine>(`/fines/${id}/waive`, { method: 'POST', body: { note } }),
+}
+
+export const wishlistApi = {
+  list: () => api<WishlistItem[]>('/wishlist'),
+  add: (bookId: number) => api<WishlistItem>('/wishlist', { method: 'POST', body: { bookId } }),
+  remove: (bookId: number) => api<void>(`/wishlist/${bookId}`, { method: 'DELETE' }),
+}
+
+export const recommendationsApi = {
+  forBook: (bookId: number, limit = 5) => api<Recommendation[]>(`/books/${bookId}/recommendations?limit=${limit}`),
+  mine: (limit = 6) => api<Recommendation[]>(`/recommendations/me?limit=${limit}`),
 }

@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { booksApi, loansApi, reservationsApi } from '../api/endpoints'
+import { booksApi, loansApi, recommendationsApi, reservationsApi } from '../api/endpoints'
 import type { Book, Reservation } from '../api/types'
+import { RecommendationGrid } from '../components/RecommendationGrid'
 import { Alert, Button, Card, PageLoader } from '../components/ui'
+import { WishlistButton } from '../components/WishlistButton'
 import { errorMessage } from '../lib/ui-helpers'
 import { formatDate, formatDateTime, formatMoney } from '../lib/format'
 import { Availability, BookCover } from './CatalogPage'
@@ -12,6 +14,11 @@ export function BookPage() {
   const id = Number(useParams().id)
   const book = useQuery({ queryKey: ['book', id], queryFn: () => booksApi.get(id), enabled: Number.isFinite(id) })
   const reservations = useQuery({ queryKey: ['reservations', 'mine'], queryFn: reservationsApi.mine })
+  const recommendations = useQuery({
+    queryKey: ['recommendations', 'book', id],
+    queryFn: () => recommendationsApi.forBook(id, 6),
+    enabled: Number.isFinite(id),
+  })
 
   if (book.isPending) return <PageLoader />
   if (book.isError) return <Alert>{errorMessage(book.error)}</Alert>
@@ -38,11 +45,20 @@ export function BookPage() {
             {b.replacementCost != null && (<><dt className="text-slate-500">Replacement cost</dt><dd>{formatMoney(b.replacementCost)}</dd></>)}
           </dl>
 
-          <div className="mt-8">
-            <BorrowPanel book={b} reservation={myReservation} />
+          <div className="mt-8 flex flex-wrap items-start gap-3">
+            <div className="min-w-0 flex-1"><BorrowPanel book={b} reservation={myReservation} /></div>
+            <WishlistButton bookId={b.id} title={b.title} />
           </div>
         </div>
       </Card>
+
+      {recommendations.data && recommendations.data.length > 0 && (
+        <section className="mt-10">
+          <h2 className="mb-1 text-lg font-semibold">Readers also borrowed</h2>
+          <p className="mb-4 text-sm text-slate-500">Based on what other members borrowed alongside this book</p>
+          <RecommendationGrid items={recommendations.data} />
+        </section>
+      )}
     </>
   )
 }
