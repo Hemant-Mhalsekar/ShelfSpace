@@ -16,7 +16,7 @@ A library management backend built with Java and Spring Boot. Librarians manage 
 - **Background jobs.** Nightly overdue marking, de-duplicated due-tomorrow reminders, and hold expiry every 15 minutes.
 - **Fine ledger.** Fines are capped per tier and can be paid or waived (waiving needs a reason). Every admin action is audited.
 - **Dashboards.** Admins see inventory, circulation, fines, the top 5 books and a 6-month trend. Members see due dates, fines, reservations and alerts.
-- **Tested against real MySQL.** 75 tests, including Testcontainers integration tests, run in GitHub Actions on every push.
+- **Tested against real MySQL.** 88 tests, including Testcontainers integration tests, run in GitHub Actions on every push.
 
 ## Architecture
 
@@ -57,7 +57,7 @@ To run from source instead, you need JDK 21, plus Docker for the database and te
 ```bash
 docker compose up -d mysql
 ./mvnw spring-boot:run      # or: mvn spring-boot:run
-./mvnw test                 # 75 tests; integration tests start their own MySQL
+./mvnw test                 # 88 tests; integration tests start their own MySQL
 ```
 
 > JDK 22+ isn't supported yet: Lombok, used by Spring Boot 3.3, fails to compile on it. With jEnv, the included `.java-version` selects 21 automatically.
@@ -315,6 +315,25 @@ Schedules are set under `app.jobs.*`. Set `SCHEDULING_ENABLED=false` to turn the
 
 All notifications go through `NotificationService`, so adding email later only touches that class.
 
+### Members (admin)
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/v1/members?q=&role=&status=&tier=` | Search by name, email or phone; each row shows active loans, overdue loans and unpaid fines (two grouped queries per page) |
+| `GET /api/v1/members/{id}` | Profile with current loans, reservations and recent history |
+| `POST /api/v1/members` | Add a member at the desk, or another librarian with `role: ADMIN` |
+| `PUT /api/v1/members/{id}` | Update name, phone or membership tier |
+| `POST /api/v1/members/{id}/suspend` (reason required) and `/activate` | A suspended member can't log in, borrow or reserve, but can still return books |
+
+### Borrowing rules
+
+| Endpoint | Who | Description |
+|---|---|---|
+| `GET /api/v1/policies` and `/{tier}` | Logged in | Current rules per tier |
+| `PUT /api/v1/policies/{tier}` | Admin | Replace a tier's rules, with range checks and `fineCap ≥ finePerDay`; the audit log records each changed field (`loanDays 14 -> 21`) |
+
+Rule changes apply to new loans, renewals and fines. Due dates already set don't move.
+
 ## Default borrowing policies
 
 | Tier | Max books | Loan days | Renewals | Fine/day | Fine cap | Blocked above |
@@ -381,6 +400,7 @@ The app listens on `$PORT` (set by the platform) and has no other host-specific 
 - [x] Week 2: borrowing, returns, renewals, fines, concurrency test
 - [x] Week 3: reservations, scheduled jobs, notifications, dashboards
 - [x] Week 4: Docker, CI, docs
+- [x] Member management and editable borrowing rules
 - [ ] Email notifications (SMTP) behind `NotificationService`
 - [ ] Refresh-token revocation and login rate limiting
 - [ ] Recommendations ("members who borrowed this also borrowed")

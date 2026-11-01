@@ -47,6 +47,13 @@ public interface FineRepository extends JpaRepository<Fine, Long> {
             """)
     BigDecimal sumPaidSince(@Param("since") java.time.LocalDateTime since);
 
+    @Query("""
+            SELECT f.loan.member.id AS memberId, SUM(f.amount) AS total FROM Fine f
+            WHERE f.status = com.shelfspace.fine.FineStatus.UNPAID AND f.loan.member.id IN :memberIds
+            GROUP BY f.loan.member.id
+            """)
+    List<com.shelfspace.member.MemberFineTotal> unpaidTotalsForMembers(@Param("memberIds") java.util.Collection<Long> memberIds);
+
     /** Total unpaid fines; zero (not null) when there are none. */
     default BigDecimal totalUnpaidForMember(Long memberId) {
         BigDecimal sum = sumUnpaidForMember(memberId);
