@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 /**
- * The demo API runs on a free host that sleeps when nobody uses it and takes about a minute to wake.
+ * The demo API runs on a free host that sleeps when nobody uses it and takes 2–3 minutes to wake.
  * This pings the health endpoint as soon as the login page opens (which also starts the wake-up)
  * and explains the wait if it's slow.
  */
@@ -14,7 +14,7 @@ export function ServerWakeBanner() {
     const started = Date.now()
 
     async function ping() {
-      while (!cancelled && Date.now() - started < 120_000) {
+      while (!cancelled && Date.now() - started < 240_000) {
         try {
           const res = await fetch('/actuator/health', { cache: 'no-store' })
           if (res.ok) {
@@ -39,7 +39,7 @@ export function ServerWakeBanner() {
     return (
       <div role="status" className="mb-6 flex items-center gap-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200 ring-inset">
         <span className="inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
-        Waking up the server. The free demo host sleeps when idle, so this can take up to a minute.
+        Waking up the server. The free demo host sleeps when idle, so this can take 2–3 minutes. You can log in once this message disappears.
       </div>
     )
   }

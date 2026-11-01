@@ -400,7 +400,7 @@ frontend/                         # React app (see frontend/README.md)
 | Part | Host | Notes |
 |---|---|---|
 | Web app | **Vercel** | `frontend/vercel.json` forwards `/api` to the API, so the browser sees one origin |
-| API | **Render** (free web service, Docker) | Sleeps after 15 minutes idle; the first request takes about a minute (the login page shows a "waking up" notice) |
+| API | **Render** (free web service, Docker) | Sleeps after 15 minutes idle; waking up takes 2–3 minutes (the login page shows a "waking up" notice) |
 | MySQL | **Aiven** (free MySQL) | 1 GB storage; SSL required |
 
 1. **Aiven:** create a free MySQL service and note its host, port, user, password and database (`defaultdb`).
