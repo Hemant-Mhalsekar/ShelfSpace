@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import { dashboardApi, loansApi, reservationsApi } from '../api/endpoints'
+import { dashboardApi, loansApi, recommendationsApi, reservationsApi } from '../api/endpoints'
 import type { Loan, Reservation } from '../api/types'
 import { useAuth } from '../auth/useAuth'
+import { RecommendationGrid } from '../components/RecommendationGrid'
 import { Alert, Button, Card, EmptyState, LinkButton, PageHeader, PageLoader, StatusBadge } from '../components/ui'
 import { errorMessage } from '../lib/ui-helpers'
 import { daysUntil, formatDate, formatDateTime, formatMoney } from '../lib/format'
@@ -11,6 +12,7 @@ import { daysUntil, formatDate, formatDateTime, formatMoney } from '../lib/forma
 export function DashboardPage() {
   const { user } = useAuth()
   const dashboard = useQuery({ queryKey: ['dashboard', 'me'], queryFn: dashboardApi.me })
+  const recommended = useQuery({ queryKey: ['recommendations', 'me'], queryFn: () => recommendationsApi.mine(6) })
 
   if (dashboard.isPending) return <PageLoader />
   if (dashboard.isError) return <Alert>{errorMessage(dashboard.error)}</Alert>
@@ -42,6 +44,12 @@ export function DashboardPage() {
           ? <EmptyState title="No reservations">When all copies of a book are out, you can join its waiting list.</EmptyState>
           : <div className="space-y-3">{reservations.map((r) => <ReservationRow key={r.id} reservation={r} />)}</div>}
       </Section>
+
+      {recommended.data && recommended.data.length > 0 && (
+        <Section title="Recommended for you">
+          <RecommendationGrid items={recommended.data} />
+        </Section>
+      )}
 
       <Section title="Recently returned">
         {recentlyReturned.length === 0

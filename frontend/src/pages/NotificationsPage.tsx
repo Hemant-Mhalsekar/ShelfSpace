@@ -7,7 +7,7 @@ import { errorMessage } from '../lib/ui-helpers'
 import { formatDateTime, timeAgo } from '../lib/format'
 
 const icons: Record<string, string> = {
-  LOAN_APPROVED: '✅', LOAN_REJECTED: '✖️', DUE_SOON: '⏰', OVERDUE: '⚠️', RESERVATION_READY: '📚', HOLD_EXPIRED: '⌛',
+  LOAN_APPROVED: '✅', LOAN_REJECTED: '✖️', DUE_SOON: '⏰', OVERDUE: '⚠️', RESERVATION_READY: '📚', HOLD_EXPIRED: '⌛', WISHLIST_AVAILABLE: '💛',
 }
 
 export function NotificationsPage() {

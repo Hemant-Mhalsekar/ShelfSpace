@@ -203,3 +203,15 @@ export interface AdminDashboard {
   mostBorrowed: { bookId: number; title: string; author: string; timesBorrowed: number }[]
   borrowsPerMonth: { month: string; borrowed: number }[]
 }
+
+// ---------- Wishlist & recommendations ----------
+
+export interface WishlistItem {
+  book: Book
+  addedAt: string
+}
+
+export interface Recommendation {
+  book: Book
+  reason: string
+}
