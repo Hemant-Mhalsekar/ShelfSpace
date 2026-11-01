@@ -2,7 +2,7 @@ spring:
   application:
     name: shelfspace
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:shelfspace}
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:shelfspace}${DB_PARAMS:}   # e.g. ?allowPublicKeyRetrieval=true&useSSL=false on some hosts
     username: ${DB_USERNAME:shelfspace}
     password: ${DB_PASSWORD:shelfspace}
   jpa:
