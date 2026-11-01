@@ -13,6 +13,13 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # Health check, used by the login page to wake a sleeping free-tier API
+    location = /actuator/health {
+        proxy_pass ${API_URL};
+        proxy_set_header Host $proxy_host;
+        proxy_ssl_server_name on;
+    }
+
     # Built assets have content hashes in their names, so they can be cached for a long time
     location /assets/ {
         expires 1y;
