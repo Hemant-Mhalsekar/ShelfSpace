@@ -52,6 +52,8 @@ export interface Loan {
   status: LoanStatus
   bookId: number | null
   bookTitle: string
+  bookAuthor: string | null
+  bookIsbn: string | null
   copyBarcode: string
   memberId: number
   memberName: string
@@ -70,6 +72,8 @@ export interface Reservation {
   id: number
   bookId: number
   bookTitle: string
+  bookAuthor: string
+  bookIsbn: string
   status: ReservationStatus
   position: number | null
   estimatedAvailableDate: string | null

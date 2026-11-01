@@ -15,6 +15,8 @@ public record LoanResponse(
         LoanStatus status,
         Long bookId,
         String bookTitle,
+        String bookAuthor,
+        String bookIsbn,
         String copyBarcode,
         Long memberId,
         String memberName,

@@ -23,7 +23,7 @@ export function ConfirmButton({ onConfirm, children, confirmLabel = 'Click again
   return (
     <Button
       variant={armed ? 'primary' : variant}
-      className={armed ? 'bg-rose-600 hover:bg-rose-500' : ''}
+      className={armed ? 'bg-danger-600 hover:bg-danger-500' : ''}
       loading={loading}
       onClick={() => {
         if (armed) {

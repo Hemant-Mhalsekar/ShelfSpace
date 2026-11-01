@@ -222,7 +222,8 @@ public class ReservationService {
             }
         }
         boolean ready = r.getStatus() == ReservationStatus.READY;
-        return new ReservationResponse(r.getId(), r.getBook().getId(), r.getBook().getTitle(), r.getStatus(),
+        return new ReservationResponse(r.getId(), r.getBook().getId(), r.getBook().getTitle(),
+                r.getBook().getAuthor(), r.getBook().getIsbn(), r.getStatus(),
                 position, estimate,
                 ready && r.getHeldCopy() != null ? r.getHeldCopy().getBarcode() : null,
                 ready ? r.getExpiresAt() : null,

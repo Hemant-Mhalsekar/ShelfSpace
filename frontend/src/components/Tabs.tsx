@@ -1,25 +1,26 @@
+/** iOS-style segmented control. */
 export function Tabs<T extends string>({ tabs, value, onChange }: {
   tabs: { value: T; label: string; count?: number }[]
   value: T
   onChange: (v: T) => void
 }) {
   return (
-    <div className="mb-5 flex gap-1 overflow-x-auto border-b border-slate-200" role="tablist">
+    <div className="mb-6 inline-flex max-w-full gap-0.5 overflow-x-auto rounded-xl bg-canvas-200 p-0.5" role="tablist">
       {tabs.map((t) => (
         <button
           key={t.value}
           role="tab"
           aria-selected={value === t.value}
           onClick={() => onChange(t.value)}
-          className={`-mb-px flex shrink-0 items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+          className={`flex shrink-0 items-center gap-1.5 rounded-[10px] px-4 py-1.5 text-[13px] font-semibold transition-all duration-150 ${
             value === t.value
-              ? 'border-indigo-600 text-indigo-700'
-              : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+              ? 'bg-canvas-50 text-ink-900 shadow-[0_1px_3px_rgba(0,0,0,0.12)]'
+              : 'text-ink-600 hover:text-ink-900'
           }`}
         >
           {t.label}
           {t.count !== undefined && t.count > 0 && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{t.count}</span>
+            <span className="rounded-full bg-danger-500 px-1.5 text-[11px] leading-[18px] text-white tabular-nums">{t.count}</span>
           )}
         </button>
       ))}

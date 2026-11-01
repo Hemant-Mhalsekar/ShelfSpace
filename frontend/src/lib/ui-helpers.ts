@@ -8,5 +8,5 @@ export function errorMessage(error: unknown) {
 }
 
 export const inputClass =
-  'block w-full rounded-lg border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs ring-1 ring-inset ring-slate-300 ' +
-  'placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600'
+  'block w-full rounded-xl border-0 bg-canvas-100 px-3.5 py-2.5 text-[15px] text-ink-900 ' +
+  'placeholder:text-ink-500 transition-colors hover:bg-canvas-200 focus:bg-canvas-50 focus:ring-2 focus:ring-accent-400 focus:outline-none'

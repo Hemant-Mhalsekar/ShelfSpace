@@ -14,6 +14,8 @@ public record ReservationResponse(
         Long id,
         Long bookId,
         String bookTitle,
+        String bookAuthor,
+        String bookIsbn,
         ReservationStatus status,
         Integer position,
         LocalDate estimatedAvailableDate,

@@ -63,7 +63,7 @@ function PolicyCard({ policy }: { policy: Policy }) {
     <Card className="p-5">
       <div className="mb-4 flex items-baseline justify-between">
         <h2 className="text-lg font-semibold">{tierName(policy.membershipTier)}</h2>
-        <span className="text-xs text-slate-400">updated {formatDateTime(policy.updatedAt)}</span>
+        <span className="text-xs text-ink-500">updated {formatDateTime(policy.updatedAt)}</span>
       </div>
       <form onSubmit={submit} className="space-y-3">
         {save.error && <Alert>{errorMessage(save.error)}</Alert>}
@@ -78,7 +78,7 @@ function PolicyCard({ policy }: { policy: Policy }) {
               value={form[f.key]}
               onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
             />
-            <span className="mt-0.5 block text-xs text-slate-400">{f.hint}</span>
+            <span className="mt-0.5 block text-xs text-ink-500">{f.hint}</span>
           </Field>
         ))}
         <div className="flex gap-2 pt-2">
