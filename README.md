@@ -96,6 +96,48 @@ Design notes:
 - **Copy states owned by circulation:** `BORROWED` and `ON_HOLD` are only set by the loan and reservation flows, never by hand.
 - **Audit trail:** every admin change is written to `audit_log` in the same transaction.
 
+## Borrowing and fines
+
+```
+Member requests ─▶ REQUESTED (copy ON_HOLD)
+                    ├─ member cancels ─▶ CANCELLED
+                    ├─ admin rejects  ─▶ REJECTED
+                    └─ admin approves ─▶ ISSUED (copy BORROWED, due date set)
+                                          ├─ renew  ─▶ due date + loan period
+                                          ├─ return ─▶ RETURNED (+ overdue fine)
+                                          └─ lost   ─▶ LOST (+ replacement cost)
+```
+
+| Endpoint | Who | Description |
+|---|---|---|
+| `POST /api/v1/loans` | Member | Request a book; one copy is held |
+| `GET /api/v1/loans/me?status=` | Member | My current loans and history, with live overdue days and fine |
+| `GET /api/v1/loans/{id}` | Owner/Admin | One loan (others get 404) |
+| `POST /api/v1/loans/{id}/cancel` | Owner | Cancel a pending request |
+| `POST /api/v1/loans/{id}/renew` | Owner/Admin | Extend the due date |
+| `GET /api/v1/loans?memberId=&status=` | Admin | All loans; `status=REQUESTED` is the approval queue |
+| `POST /api/v1/loans/{id}/approve` and `/reject` | Admin | Decide a request |
+| `POST /api/v1/loans/{id}/return` and `/lost` | Admin | Close a loan and charge fines |
+| `GET /api/v1/fines/me` | Member | My fines and total owed |
+| `GET /api/v1/fines?memberId=&status=` | Admin | All fines |
+| `POST /api/v1/fines/{id}/pay` and `/waive` | Admin | Collect or waive (waive needs a reason) |
+
+**Borrowing rules**, checked in order, all read from the member's tier in `borrowing_policies`:
+1. Account is active.
+2. No books past their due date.
+3. Unpaid fines are not above the tier limit.
+4. Active loans are under the tier's book limit.
+5. They don't already have this title.
+6. A copy is available.
+
+**Renewals:** only while issued and not overdue, under the renewal limit, and when nobody is waiting for the book.
+
+**Fines:** `days late × fine per day`, capped per tier. A lost book adds its replacement cost.
+
+**Concurrency:** requesting a book holds a specific copy. `book_copies.version` (`@Version`) makes the second of two simultaneous updates fail, which returns 409. `LoanConcurrencyIntegrationTest` fires 10 requests at the last copy at once and asserts exactly one succeeds.
+
+**Testable time:** all date logic uses an injected `java.time.Clock`.
+
 ### Demo accounts
 
 Created automatically on startup when `SEED_ENABLED=true` (the default for local runs):
@@ -120,7 +162,7 @@ Set `SEED_ENABLED=false` and a strong `JWT_SECRET` in any real deployment.
 - [x] Project setup, schema, entities, error handling, Swagger
 - [x] Week 1: JWT auth (register, login, refresh, me), demo accounts
 - [x] Week 1: book and copy CRUD, catalog search
-- [ ] Week 2: borrow, return and renew; fines; concurrency test
+- [x] Week 2: borrow, return and renew; fines; concurrency test
 - [ ] Week 3: reservations, overdue job, email reminders, dashboards
 - [ ] Week 4: Docker image, GitHub Actions CI, deployment
 

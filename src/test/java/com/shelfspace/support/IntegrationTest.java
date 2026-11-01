@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -65,6 +66,39 @@ public abstract class IntegrationTest {
 
     protected String memberToken() throws Exception {
         return bearer(MEMBER_EMAIL, MEMBER_PASSWORD);
+    }
+
+    /** A freshly registered STUDENT member, so tests never share loan or fine state. */
+    protected record TestMember(long id, String email, String token) {
+    }
+
+    protected TestMember newMember() throws Exception {
+        String email = "member-" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
+        String body = mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name": "Test Member", "email": "%s", "password": "Secret123"}
+                                """.formatted(email)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        var node = json.readTree(body);
+        return new TestMember(node.get("user").get("id").asLong(), email,
+                "Bearer " + node.get("accessToken").asText());
+    }
+
+    /** Creates a book with the given number of copies (as admin) and returns its id. */
+    protected long newBook(int copies) throws Exception {
+        String body = mockMvc.perform(post("/api/v1/books")
+                        .header("Authorization", adminToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"title": "Book %s", "author": "Test Author", "isbn": "%s",
+                                 "category": "Testing", "publicationYear": 2020,
+                                 "replacementCost": 450.00, "initialCopies": %d}
+                                """.formatted(UUID.randomUUID().toString().substring(0, 8), randomIsbn13(), copies)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        return json.readTree(body).get("id").asLong();
     }
 
     /** A random but valid ISBN-13, so tests never collide on the unique ISBN column. */
