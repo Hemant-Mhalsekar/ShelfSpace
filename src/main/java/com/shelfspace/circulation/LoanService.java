@@ -21,7 +21,11 @@ import com.shelfspace.member.Role;
 import com.shelfspace.member.User;
 import com.shelfspace.member.UserRepository;
 import com.shelfspace.policy.BorrowingPolicy;
+import com.shelfspace.notification.NotificationService;
+import com.shelfspace.notification.NotificationType;
 import com.shelfspace.policy.PolicyService;
+import com.shelfspace.reservation.Reservation;
+import com.shelfspace.reservation.ReservationService;
 import com.shelfspace.reservation.ReservationRepository;
 import com.shelfspace.reservation.ReservationStatus;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +38,9 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -62,6 +68,8 @@ public class LoanService {
     private final PolicyService policyService;
     private final FineService fineService;
     private final AuditService auditService;
+    private final ReservationService reservationService;
+    private final NotificationService notificationService;
     private final Clock clock;
 
     // ---------- Member actions ----------
@@ -83,11 +91,19 @@ public class LoanService {
 
         checkCanBorrow(member, book, policy);
 
-        BookCopy copy = copyRepository.findFirstByBookIdAndStatusOrderByIdAsc(bookId, CopyStatus.AVAILABLE)
-                .orElseThrow(() -> new BusinessRuleException(
-                        "No copies of '" + book.getTitle() + "' are available right now"));
-        copy.setStatus(CopyStatus.ON_HOLD);
-        copyRepository.saveAndFlush(copy);   // optimistic lock is checked here
+        BookCopy copy;
+        Optional<Reservation> ready = reservationService.readyFor(memberId, bookId);
+        if (ready.isPresent()) {
+            // A copy is already being held for this member from the waiting list.
+            copy = ready.get().getHeldCopy();
+            reservationService.markFulfilled(ready.get());
+        } else {
+            copy = copyRepository.findFirstByBookIdAndStatusOrderByIdAsc(bookId, CopyStatus.AVAILABLE)
+                    .orElseThrow(() -> new BusinessRuleException(
+                            "No copies of '" + book.getTitle() + "' are available right now. You can reserve it."));
+            copy.setStatus(CopyStatus.ON_HOLD);
+            copyRepository.saveAndFlush(copy);   // optimistic lock is checked here
+        }
 
         Loan loan = new Loan();
         loan.setMember(member);
@@ -103,7 +119,7 @@ public class LoanService {
             throw new BusinessRuleException("Only the member who requested a loan can cancel it");
         }
         loan.transitionTo(LoanStatus.CANCELLED);
-        loan.getCopy().setStatus(CopyStatus.AVAILABLE);
+        reservationService.releaseCopy(loan.getCopy());
         return toResponse(loan);
     }
 
@@ -152,6 +168,9 @@ public class LoanService {
         loan.getCopy().setStatus(CopyStatus.BORROWED);
 
         auditService.record(adminId, "LOAN_APPROVED", "Loan", loanId, "dueDate=" + loan.getDueDate());
+        notificationService.notify(loan.getMember().getId(), NotificationType.LOAN_APPROVED,
+                "'" + loan.getCopy().getBook().getTitle() + "' is ready to collect",
+                "Your request was approved. Due back on " + loan.getDueDate() + ".", "Loan", loanId);
         return toResponse(loan, policy);
     }
 
@@ -159,8 +178,12 @@ public class LoanService {
     public LoanResponse reject(Long loanId, String reason, Long adminId) {
         Loan loan = findDetailed(loanId);
         loan.transitionTo(LoanStatus.REJECTED);
-        loan.getCopy().setStatus(CopyStatus.AVAILABLE);
+        reservationService.releaseCopy(loan.getCopy());
         auditService.record(adminId, "LOAN_REJECTED", "Loan", loanId, reason);
+        notificationService.notify(loan.getMember().getId(), NotificationType.LOAN_REJECTED,
+                "Request for '" + loan.getCopy().getBook().getTitle() + "' was declined",
+                reason == null || reason.isBlank() ? "Please contact the library for details." : reason,
+                "Loan", loanId);
         return toResponse(loan);
     }
 
@@ -173,7 +196,7 @@ public class LoanService {
 
         loan.transitionTo(LoanStatus.RETURNED);
         loan.setReturnedAt(LocalDateTime.now(clock));
-        loan.getCopy().setStatus(CopyStatus.AVAILABLE);
+        reservationService.releaseCopy(loan.getCopy());   // next in the queue, or back on the shelf
 
         long daysLate = FineCalculator.overdueDays(loan.getDueDate(), today);
         BigDecimal fine = FineCalculator.overdueFine(daysLate, policy.getFinePerDay(), policy.getFineCap());
@@ -220,6 +243,29 @@ public class LoanService {
         Map<MembershipTier, BorrowingPolicy> policies = policyService.all();
         return PageResponse.from(loanRepository.search(memberId, status, pageable)
                 .map(l -> toResponse(l, policies.get(l.getMember().getMembershipTier()))));
+    }
+
+    /** Books the member currently has or has requested, soonest due first. */
+    @Transactional(readOnly = true)
+    public List<LoanResponse> activeFor(Long memberId) {
+        BorrowingPolicy policy = policyForMember(memberId);
+        return loanRepository.findByMemberIdAndStatusInOrderByDueDateAsc(memberId, ACTIVE).stream()
+                .map(l -> toResponse(l, policy)).toList();
+    }
+
+    /** Last five closed loans. */
+    @Transactional(readOnly = true)
+    public List<LoanResponse> recentHistoryFor(Long memberId) {
+        BorrowingPolicy policy = policyForMember(memberId);
+        return loanRepository.findTop5ByMemberIdAndStatusInOrderByReturnedAtDesc(
+                        memberId, EnumSet.of(LoanStatus.RETURNED, LoanStatus.LOST)).stream()
+                .map(l -> toResponse(l, policy)).toList();
+    }
+
+    private BorrowingPolicy policyForMember(Long memberId) {
+        User member = userRepository.findById(memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", memberId));
+        return policyService.forTier(member.getMembershipTier());
     }
 
     // ---------- Rules ----------

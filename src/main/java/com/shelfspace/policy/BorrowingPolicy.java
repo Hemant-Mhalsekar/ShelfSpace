@@ -46,4 +46,11 @@ public class BorrowingPolicy extends BaseEntity {
     /** Members owing more than this cannot borrow. */
     @Column(name = "max_unpaid_fines", nullable = false, precision = 10, scale = 2)
     private BigDecimal maxUnpaidFines;
+
+    @Column(name = "max_reservations", nullable = false)
+    private int maxReservations;
+
+    /** How long a returned copy is kept for the next member in the queue. */
+    @Column(name = "hold_hours", nullable = false)
+    private int holdHours;
 }

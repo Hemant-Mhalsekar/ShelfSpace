@@ -10,6 +10,7 @@ import com.shelfspace.common.exception.DuplicateResourceException;
 import com.shelfspace.common.exception.InvalidRequestException;
 import com.shelfspace.common.exception.ResourceNotFoundException;
 import com.shelfspace.reservation.ReservationRepository;
+import com.shelfspace.reservation.ReservationService;
 import com.shelfspace.reservation.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -44,6 +45,7 @@ public class BookService {
     private final BookCopyRepository copyRepository;
     private final ReservationRepository reservationRepository;
     private final AuditService auditService;
+    private final ReservationService reservationService;
 
     // ---------- Queries (any logged-in user) ----------
 
@@ -137,6 +139,7 @@ public class BookService {
     public List<CopyResponse> addCopies(Long bookId, int count, Long adminId) {
         Book book = findBook(bookId);
         List<BookCopy> created = createCopies(book, count);
+        created.forEach(reservationService::releaseCopy);   // members waiting for this book get them first
         auditService.record(adminId, "COPIES_ADDED", "Book", bookId, "count=" + count);
         return created.stream().map(CopyResponse::from).toList();
     }
@@ -155,7 +158,11 @@ public class BookService {
         }
 
         CopyStatus previous = copy.getStatus();
-        copy.setStatus(target);
+        if (target == CopyStatus.AVAILABLE) {
+            reservationService.releaseCopy(copy);   // a repaired/found copy goes to the queue first
+        } else {
+            copy.setStatus(target);
+        }
         auditService.record(adminId, "COPY_STATUS_CHANGED", "BookCopy", copyId,
                 previous + " -> " + target + (note == null ? "" : " (" + note + ")"));
         return CopyResponse.from(copy);
