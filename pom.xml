@@ -13,7 +13,7 @@
 
     <groupId>com.shelfspace</groupId>
     <artifactId>shelfspace</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>ShelfSpace</name>
     <description>Library management backend: catalog, circulation, reservations and fines</description>
 
