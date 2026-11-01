@@ -327,6 +327,8 @@ public class LoanService {
         return new LoanResponse(loan.getId(), loan.getStatus(),
                 book == null ? null : book.getId(),
                 book == null ? "(removed)" : book.getTitle(),
+                book == null ? null : book.getAuthor(),
+                book == null ? null : book.getIsbn(),
                 copy.getBarcode(), member.getId(), member.getName(),
                 loan.getRequestedAt(), loan.getBorrowedAt(), loan.getDueDate(), loan.getReturnedAt(),
                 loan.getRenewCount(), overdueDays, accrued);

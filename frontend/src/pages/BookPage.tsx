@@ -1,14 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { booksApi, loansApi, recommendationsApi, reservationsApi } from '../api/endpoints'
 import type { Book, Reservation } from '../api/types'
 import { RecommendationGrid } from '../components/RecommendationGrid'
-import { Alert, Button, Card, PageLoader } from '../components/ui'
+import { Alert, Button, PageLoader, SectionTitle } from '../components/ui'
 import { WishlistButton } from '../components/WishlistButton'
 import { errorMessage } from '../lib/ui-helpers'
 import { formatDate, formatDateTime, formatMoney } from '../lib/format'
-import { Availability, BookCover } from './CatalogPage'
+import { BookCover } from '../components/BookCover'
+import { Availability } from './CatalogPage'
 
 export function BookPage() {
   const id = Number(useParams().id)
@@ -30,32 +31,36 @@ export function BookPage() {
 
   return (
     <>
-      <Link to="/books" className="mb-6 inline-block text-sm text-slate-500 hover:text-slate-800">← Back to catalog</Link>
-      <Card className="flex flex-col gap-8 p-6 sm:flex-row">
-        <BookCover title={b.title} large />
-        <div className="flex-1">
-          <p className="text-sm font-medium text-indigo-600">{b.category}</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">{b.title}</h1>
-          <p className="mt-1 text-lg text-slate-600">{b.author}</p>
+      <Link to="/books" className="mb-6 inline-flex items-center gap-1 text-[15px] font-medium text-accent-600 hover:text-accent-700">
+        <span aria-hidden>‹</span> Catalog
+      </Link>
 
-          <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:max-w-md">
-            <dt className="text-slate-500">ISBN</dt><dd className="font-mono">{b.isbn}</dd>
-            <dt className="text-slate-500">Published</dt><dd>{b.publicationYear ?? '—'}</dd>
-            <dt className="text-slate-500">Copies</dt><dd><Availability book={b} /></dd>
-            {b.replacementCost != null && (<><dt className="text-slate-500">Replacement cost</dt><dd>{formatMoney(b.replacementCost)}</dd></>)}
-          </dl>
+      <div className="flex flex-col gap-8 sm:flex-row sm:gap-12">
+        <BookCover title={b.title} author={b.author} isbn={b.isbn} size="lg" className="self-center sm:self-start" />
 
-          <div className="mt-8 flex flex-wrap items-start gap-3">
-            <div className="min-w-0 flex-1"><BorrowPanel book={b} reservation={myReservation} /></div>
-            <WishlistButton bookId={b.id} title={b.title} />
+        <div className="min-w-0 flex-1">
+          <h1 className="font-display text-[34px] leading-tight font-bold tracking-tight">{b.title}</h1>
+          <p className="mt-1 text-xl font-medium text-accent-600">{b.author}</p>
+
+          <div className="mt-6">
+            <BorrowPanel book={b} reservation={myReservation} side={<WishlistButton bookId={b.id} title={b.title} />} />
           </div>
+
+          <dl className="mt-8 grid grid-cols-2 divide-x divide-ink-200 border-y border-ink-200 py-4 text-center sm:grid-cols-4">
+            <Fact label="Genre" value={b.category} />
+            <Fact label="Published" value={b.publicationYear ?? '—'} />
+            <Fact label="Copies" value={<Availability book={b} />} />
+            <Fact label="ISBN" value={<span className="font-mono text-[13px]">{b.isbn}</span>} />
+          </dl>
+          {b.replacementCost != null && (
+            <p className="mt-3 text-[13px] text-ink-500">Replacement cost if lost: {formatMoney(b.replacementCost)}</p>
+          )}
         </div>
-      </Card>
+      </div>
 
       {recommendations.data && recommendations.data.length > 0 && (
-        <section className="mt-10">
-          <h2 className="mb-1 text-lg font-semibold">Readers also borrowed</h2>
-          <p className="mb-4 text-sm text-slate-500">Based on what other members borrowed alongside this book</p>
+        <section className="mt-14">
+          <SectionTitle>Readers Also Borrowed</SectionTitle>
           <RecommendationGrid items={recommendations.data} />
         </section>
       )}
@@ -63,7 +68,16 @@ export function BookPage() {
   )
 }
 
-function BorrowPanel({ book, reservation }: { book: Book; reservation?: Reservation }) {
+function Fact({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="px-3 py-1">
+      <dt className="text-[11px] font-semibold tracking-wide text-ink-500 uppercase">{label}</dt>
+      <dd className="mt-1 truncate text-[15px] font-semibold text-ink-900">{value}</dd>
+    </div>
+  )
+}
+
+function BorrowPanel({ book, reservation, side }: { book: Book; reservation?: Reservation; side: ReactNode }) {
   const queryClient = useQueryClient()
   const [message, setMessage] = useState<string | null>(null)
 
@@ -90,42 +104,50 @@ function BorrowPanel({ book, reservation }: { book: Book; reservation?: Reservat
   })
   const error = borrow.error ?? reserve.error
 
+  const big = 'px-8 py-3 text-base'
+
   if (message) {
     return (
-      <div className="space-y-3">
+      <div className="w-full space-y-2">
         <Alert kind="success">{message}</Alert>
-        <Link to="/dashboard" className="text-sm font-medium text-indigo-600 hover:underline">Go to my dashboard →</Link>
+        <Link to="/dashboard" className="text-sm font-semibold text-accent-600 hover:text-accent-700">Go to My Books ›</Link>
       </div>
     )
   }
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col items-start gap-2">
       {error && <Alert>{errorMessage(error)}</Alert>}
 
       {reservation?.status === 'READY' ? (
         <>
-          <Alert kind="info">
-            A copy is being held for you until <strong>{formatDateTime(reservation.expiresAt)}</strong>.
-          </Alert>
-          <Button loading={borrow.isPending} onClick={() => borrow.mutate()}>Borrow my held copy</Button>
+          <Row side={side}><Button className={big} loading={borrow.isPending} onClick={() => borrow.mutate()}>Borrow Held Copy</Button></Row>
+          <p className="text-[13px] text-success-700">Held for you until {formatDateTime(reservation.expiresAt)}</p>
         </>
       ) : reservation?.status === 'WAITING' ? (
-        <Alert kind="info">
-          You're <strong>#{reservation.position}</strong> in the queue
-          {reservation.estimatedAvailableDate && <>, expected around <strong>{formatDate(reservation.estimatedAvailableDate)}</strong></>}.
-          We'll notify you when it's ready.
-        </Alert>
+        <>
+          <Row side={side}><Button className={big} variant="secondary" disabled>#{reservation.position} in Line</Button></Row>
+          <p className="text-[13px] text-ink-500">
+            {reservation.estimatedAvailableDate ? `Expected around ${formatDate(reservation.estimatedAvailableDate)}. ` : ''}We'll notify you.
+          </p>
+        </>
       ) : book.availableCopies > 0 ? (
-        <Button loading={borrow.isPending} onClick={() => borrow.mutate()}>Borrow this book</Button>
+        <>
+          <Row side={side}><Button className={big} loading={borrow.isPending} onClick={() => borrow.mutate()}>Borrow</Button></Row>
+          <p className="text-[13px] text-ink-500">A librarian approves requests, usually the same day.</p>
+        </>
       ) : book.totalCopies > 0 ? (
         <>
-          <p className="text-sm text-slate-600">All copies are out right now. Join the waiting list and we'll hold the next copy for you.</p>
-          <Button loading={reserve.isPending} onClick={() => reserve.mutate()}>Reserve</Button>
+          <Row side={side}><Button className={big} loading={reserve.isPending} onClick={() => reserve.mutate()}>Join Waitlist</Button></Row>
+          <p className="text-[13px] text-ink-500">All copies are out. We'll hold the next one for you.</p>
         </>
       ) : (
-        <p className="text-sm text-slate-500">This book has no copies yet.</p>
+        <Row side={side}><p className="text-[15px] text-ink-500">No copies yet.</p></Row>
       )}
     </div>
   )
+}
+
+function Row({ side, children }: { side: ReactNode; children: ReactNode }) {
+  return <div className="flex items-center gap-3">{children}{side}</div>
 }

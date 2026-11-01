@@ -25,7 +25,7 @@ export function MemberPage() {
 
   return (
     <>
-      <Link to="/admin/members" className="mb-6 inline-block text-sm text-slate-500 hover:text-slate-800">← All members</Link>
+      <Link to="/admin/members" className="mb-6 inline-block text-sm text-ink-500 hover:text-ink-800">← All members</Link>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -34,7 +34,7 @@ export function MemberPage() {
             <StatusBadge status={m.status} />
             {m.role === 'ADMIN' && <Badge color="blue">Librarian</Badge>}
           </div>
-          <p className="mt-1 text-sm text-slate-500">{m.email}{m.phone ? ` · ${m.phone}` : ''} · joined {formatDate(m.createdAt)}</p>
+          <p className="mt-1 text-sm text-ink-500">{m.email}{m.phone ? ` · ${m.phone}` : ''} · joined {formatDate(m.createdAt)}</p>
         </div>
         {!isSelf && (m.status === 'ACTIVE'
           ? <Button variant="danger" onClick={() => setSuspending(true)}>Suspend</Button>
@@ -46,12 +46,12 @@ export function MemberPage() {
       )}
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="p-4"><p className="text-sm text-slate-500">Active loans</p><p className="text-xl font-bold">{m.activeLoans}</p></Card>
-        <Card className="p-4"><p className="text-sm text-slate-500">Overdue</p><p className={`text-xl font-bold ${m.overdueLoans ? 'text-rose-600' : ''}`}>{m.overdueLoans}</p></Card>
+        <Card className="p-4"><p className="text-sm text-ink-500">Active loans</p><p className="text-xl font-bold">{m.activeLoans}</p></Card>
+        <Card className="p-4"><p className="text-sm text-ink-500">Overdue</p><p className={`text-xl font-bold ${m.overdueLoans ? 'text-danger-600' : ''}`}>{m.overdueLoans}</p></Card>
         <Link to={`/admin/fines?memberId=${m.id}`} className="block hover:opacity-80">
-          <Card className="p-4"><p className="text-sm text-slate-500">Unpaid fines</p><p className={`text-xl font-bold ${m.unpaidFines > 0 ? 'text-rose-600' : ''}`}>{formatMoney(m.unpaidFines)}</p></Card>
+          <Card className="p-4"><p className="text-sm text-ink-500">Unpaid fines</p><p className={`text-xl font-bold ${m.unpaidFines > 0 ? 'text-danger-600' : ''}`}>{formatMoney(m.unpaidFines)}</p></Card>
         </Link>
-        <Card className="p-4"><p className="text-sm text-slate-500">Reservations</p><p className="text-xl font-bold">{reservations.length}</p></Card>
+        <Card className="p-4"><p className="text-sm text-ink-500">Reservations</p><p className="text-xl font-bold">{reservations.length}</p></Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
@@ -61,11 +61,11 @@ export function MemberPage() {
           {reservations.length > 0 && (
             <Card className="p-5">
               <h2 className="mb-3 font-semibold">Reservations</h2>
-              <ul className="divide-y divide-slate-100 text-sm">
+              <ul className="divide-y divide-ink-100 text-sm">
                 {reservations.map((r) => (
                   <li key={r.id} className="flex items-center justify-between py-2">
                     <span>{r.bookTitle}</span>
-                    <span className="flex items-center gap-2 text-slate-500">{r.position ? `#${r.position}` : ''} <StatusBadge status={r.status} /></span>
+                    <span className="flex items-center gap-2 text-ink-500">{r.position ? `#${r.position}` : ''} <StatusBadge status={r.status} /></span>
                   </li>
                 ))}
               </ul>
@@ -88,16 +88,16 @@ function LoanList({ title, loans, empty, memberId }: { title: string; loans: Loa
     <Card className="p-5">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-semibold">{title}</h2>
-        {memberId && loans.length > 0 && <Link to={`/admin/loans?tab=out&memberId=${memberId}`} className="text-sm text-indigo-600 hover:underline">Open in loan desk</Link>}
+        {memberId && loans.length > 0 && <Link to={`/admin/loans?tab=out&memberId=${memberId}`} className="text-sm text-accent-600 hover:underline">Open in loan desk</Link>}
       </div>
       {loans.length === 0 ? <EmptyState title={empty} /> : (
-        <ul className="divide-y divide-slate-100 text-sm">
+        <ul className="divide-y divide-ink-100 text-sm">
           {loans.map((l) => (
             <li key={l.id} className="flex items-center justify-between gap-3 py-2.5">
               <span className="min-w-0 truncate font-medium">{l.bookTitle}</span>
-              <span className="flex shrink-0 items-center gap-2 text-slate-500">
+              <span className="flex shrink-0 items-center gap-2 text-ink-500">
                 {l.returnedAt ? formatDate(l.returnedAt) : l.dueDate ? `due ${formatDate(l.dueDate)}` : ''}
-                {l.overdueDays ? <span className="text-rose-600">{l.overdueDays}d late</span> : null}
+                {l.overdueDays ? <span className="text-danger-600">{l.overdueDays}d late</span> : null}
                 <StatusBadge status={l.status} />
               </span>
             </li>
@@ -151,7 +151,7 @@ function EditMember({ member }: { member: MemberSummary }) {
         <select className={inputClass} value={form.membershipTier} onChange={(e) => setForm({ ...form, membershipTier: e.target.value as MembershipTier })}>
           {TIERS.map((t) => <option key={t} value={t}>{tierName(t)}</option>)}
         </select>
-        <span className="mt-1 block text-xs text-slate-500">New limits apply to their next loan. Current due dates don't change.</span>
+        <span className="mt-1 block text-xs text-ink-500">New limits apply to their next loan. Current due dates don't change.</span>
       </Field>
       <Button type="submit" loading={save.isPending}>Save</Button>
     </form>
@@ -169,7 +169,7 @@ function SuspendDialog({ member, open, onClose }: { member: MemberSummary; open:
 
   return (
     <Modal title={`Suspend ${member.name}?`} open={open} onClose={onClose}>
-      <p className="mb-4 text-sm text-slate-600">They won't be able to log in, borrow or reserve until reactivated. Books they have can still be returned.</p>
+      <p className="mb-4 text-sm text-ink-600">They won't be able to log in, borrow or reserve until reactivated. Books they have can still be returned.</p>
       {suspend.error && <div className="mb-3"><Alert>{errorMessage(suspend.error)}</Alert></div>}
       <Field label="Reason (kept in the audit log)">
         <input className={inputClass} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Repeated late returns" maxLength={255} />

@@ -42,7 +42,7 @@ export function AdminBooksPage() {
               <>
                 <Card className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
-                    <thead className="border-b border-slate-200 text-xs tracking-wide text-slate-500 uppercase">
+                    <thead className="border-b border-ink-200 text-[13px] text-ink-500">
                       <tr>
                         <th className="px-4 py-3 font-medium">Title</th>
                         <th className="px-4 py-3 font-medium">ISBN</th>
@@ -51,18 +51,18 @@ export function AdminBooksPage() {
                         <th className="px-4 py-3"><span className="sr-only">Manage</span></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-ink-100">
                       {books.data.content.map((b) => (
-                        <tr key={b.id} className="hover:bg-slate-50">
+                        <tr key={b.id} className="hover:bg-ink-50">
                           <td className="px-4 py-3">
                             <p className="font-medium">{b.title}</p>
-                            <p className="text-xs text-slate-500">{b.author}</p>
+                            <p className="text-xs text-ink-500">{b.author}</p>
                           </td>
-                          <td className="px-4 py-3 font-mono text-xs text-slate-600">{b.isbn}</td>
-                          <td className="px-4 py-3 text-slate-600">{b.category}</td>
+                          <td className="px-4 py-3 font-mono text-xs text-ink-600">{b.isbn}</td>
+                          <td className="px-4 py-3 text-ink-600">{b.category}</td>
                           <td className="px-4 py-3"><Availability book={b} /></td>
                           <td className="px-4 py-3 text-right">
-                            <Link to={`/admin/books/${b.id}`} className="font-medium text-indigo-600 hover:underline">Manage</Link>
+                            <Link to={`/admin/books/${b.id}`} className="font-medium text-accent-600 hover:underline">Manage</Link>
                           </td>
                         </tr>
                       ))}

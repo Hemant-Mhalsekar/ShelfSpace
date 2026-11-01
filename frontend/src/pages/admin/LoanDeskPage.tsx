@@ -7,6 +7,7 @@ import { ConfirmButton } from '../../components/ConfirmButton'
 import { Modal } from '../../components/Modal'
 import { Tabs } from '../../components/Tabs'
 import { useToast } from '../../components/toast/useToast'
+import { BookCover } from '../../components/BookCover'
 import { Alert, Button, Card, EmptyState, Field, PageHeader, PageLoader, Pagination, StatusBadge } from '../../components/ui'
 import { daysUntil, formatDate, formatDateTime, formatMoney } from '../../lib/format'
 import { errorMessage, inputClass } from '../../lib/ui-helpers'
@@ -46,7 +47,7 @@ export function LoanDeskPage() {
       <PageHeader
         title="Loan desk"
         subtitle={memberId
-          ? <>Showing one member's loans · <button className="text-indigo-600 hover:underline" onClick={() => { params.delete('memberId'); setParams(params) }}>show everyone</button></>
+          ? <>Showing one member's loans · <button className="text-accent-600 hover:underline" onClick={() => { params.delete('memberId'); setParams(params) }}>show everyone</button></>
           : 'Approve requests, check books in and keep an eye on overdue loans'}
       />
       <Tabs<Tab>
@@ -60,7 +61,7 @@ export function LoanDeskPage() {
         ]}
       />
       {tab === 'overdue' && (
-        <p className="-mt-2 mb-4 text-xs text-slate-500">Loans are flagged overdue by the nightly job. Loans that went past due today still show under “Out”, in red.</p>
+        <p className="-mt-2 mb-4 text-xs text-ink-500">Loans are flagged overdue by the nightly job. Loans that went past due today still show under “Out”, in red.</p>
       )}
 
       {loans.isPending ? <PageLoader />
@@ -68,9 +69,9 @@ export function LoanDeskPage() {
           : loans.data.content.length === 0 ? <EmptyState title={emptyText[tab]} />
             : (
               <>
-                <div className={`space-y-3 ${loans.isPlaceholderData ? 'opacity-60' : ''}`}>
+                <Card className={`divide-y divide-ink-200/70 ${loans.isPlaceholderData ? 'opacity-60' : ''}`}>
                   {loans.data.content.map((l) => <LoanCard key={l.id} loan={l} />)}
-                </div>
+                </Card>
                 <Pagination page={loans.data.page} totalPages={loans.data.totalPages} onChange={setPage} />
               </>
             )}
@@ -122,22 +123,23 @@ function LoanCard({ loan }: { loan: Loan }) {
   const late = days !== null && days < 0 && (loan.status === 'ISSUED' || loan.status === 'OVERDUE')
 
   return (
-    <Card className={`p-4 ${late ? 'border-rose-200' : ''}`}>
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+    <div className="px-4 py-3.5">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+        <BookCover title={loan.bookTitle} isbn={loan.bookIsbn ?? undefined} size="xs" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             {loan.bookId
-              ? <Link to={`/admin/books/${loan.bookId}`} className="font-medium hover:text-indigo-700">{loan.bookTitle}</Link>
-              : <span className="font-medium">{loan.bookTitle}</span>}
+              ? <Link to={`/admin/books/${loan.bookId}`} className="text-[15px] font-semibold hover:text-accent-600">{loan.bookTitle}</Link>
+              : <span className="text-[15px] font-semibold">{loan.bookTitle}</span>}
             <StatusBadge status={loan.status} />
-            <span className="font-mono text-xs text-slate-400">{loan.copyBarcode}</span>
+            <span className="font-mono text-xs text-ink-500">{loan.copyBarcode}</span>
           </div>
-          <p className="mt-1 text-sm text-slate-600">
-            <Link to={`/admin/members/${loan.memberId}`} className="hover:text-indigo-700 hover:underline">{loan.memberName}</Link>
-            <span className="text-slate-400"> · </span>
+          <p className="mt-1 text-sm text-ink-600">
+            <Link to={`/admin/members/${loan.memberId}`} className="hover:text-accent-700 hover:underline">{loan.memberName}</Link>
+            <span className="text-ink-500"> · </span>
             {loan.status === 'REQUESTED' && <>requested {formatDateTime(loan.requestedAt)}</>}
             {(loan.status === 'ISSUED' || loan.status === 'OVERDUE') && (late
-              ? <span className="font-medium text-rose-600">{-days!} day(s) overdue · {formatMoney(loan.accruedFine)} so far</span>
+              ? <span className="font-medium text-danger-600">{-days!} day(s) overdue · {formatMoney(loan.accruedFine)} so far</span>
               : <>due {formatDate(loan.dueDate)}{loan.renewCount ? ` · renewed ${loan.renewCount}×` : ''}</>)}
             {(loan.status === 'RETURNED' || loan.status === 'LOST') && <>closed {formatDate(loan.returnedAt)}</>}
           </p>
@@ -146,7 +148,7 @@ function LoanCard({ loan }: { loan: Loan }) {
         <div className="flex flex-wrap gap-2">
           {loan.status === 'REQUESTED' && (
             <>
-              <Button loading={approve.isPending} onClick={() => approve.mutate()}>Approve & issue</Button>
+              <Button loading={approve.isPending} onClick={() => approve.mutate()}>Approve</Button>
               <Button variant="secondary" onClick={() => setRejecting(true)}>Reject</Button>
             </>
           )}
@@ -160,7 +162,7 @@ function LoanCard({ loan }: { loan: Loan }) {
       </div>
 
       <RejectDialog loan={loan} open={rejecting} onClose={() => setRejecting(false)} onDone={done} />
-    </Card>
+    </div>
   )
 }
 
@@ -174,7 +176,7 @@ function RejectDialog({ loan, open, onClose, onDone }: { loan: Loan; open: boole
 
   return (
     <Modal title="Reject request" open={open} onClose={onClose}>
-      <p className="mb-4 text-sm text-slate-600">
+      <p className="mb-4 text-sm text-ink-600">
         <strong>{loan.memberName}</strong> asked for <strong>{loan.bookTitle}</strong>. The copy goes back to the shelf (or to the next person waiting).
       </p>
       {reject.error && <div className="mb-3"><Alert>{errorMessage(reject.error)}</Alert></div>}

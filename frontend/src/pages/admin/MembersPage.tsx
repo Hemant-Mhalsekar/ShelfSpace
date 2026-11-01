@@ -49,7 +49,7 @@ export function MembersPage() {
               <>
                 <Card className={`overflow-x-auto ${members.isPlaceholderData ? 'opacity-60' : ''}`}>
                   <table className="w-full text-left text-sm">
-                    <thead className="border-b border-slate-200 text-xs tracking-wide text-slate-500 uppercase">
+                    <thead className="border-b border-ink-200 text-[13px] text-ink-500">
                       <tr>
                         <th className="px-4 py-3 font-medium">Member</th>
                         <th className="px-4 py-3 font-medium">Tier</th>
@@ -58,21 +58,21 @@ export function MembersPage() {
                         <th className="px-4 py-3 text-right font-medium">Unpaid</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-ink-100">
                       {members.data.content.map((m) => (
-                        <tr key={m.id} className="hover:bg-slate-50">
+                        <tr key={m.id} className="hover:bg-ink-50">
                           <td className="px-4 py-3">
-                            <Link to={`/admin/members/${m.id}`} className="font-medium hover:text-indigo-700">{m.name}</Link>
+                            <Link to={`/admin/members/${m.id}`} className="font-medium hover:text-accent-700">{m.name}</Link>
                             {m.role === 'ADMIN' && <span className="ml-2"><Badge color="blue">Librarian</Badge></span>}
-                            <p className="text-xs text-slate-500">{m.email}</p>
+                            <p className="text-xs text-ink-500">{m.email}</p>
                           </td>
-                          <td className="px-4 py-3 text-slate-600">{tierName(m.membershipTier)}</td>
+                          <td className="px-4 py-3 text-ink-600">{tierName(m.membershipTier)}</td>
                           <td className="px-4 py-3"><StatusBadge status={m.status} /></td>
                           <td className="px-4 py-3 text-right tabular-nums">
                             {m.activeLoans}
-                            {m.overdueLoans > 0 && <span className="ml-1 text-xs font-medium text-rose-600">({m.overdueLoans} late)</span>}
+                            {m.overdueLoans > 0 && <span className="ml-1 text-xs font-medium text-danger-600">({m.overdueLoans} late)</span>}
                           </td>
-                          <td className={`px-4 py-3 text-right tabular-nums ${m.unpaidFines > 0 ? 'font-medium text-rose-600' : 'text-slate-400'}`}>
+                          <td className={`px-4 py-3 text-right tabular-nums ${m.unpaidFines > 0 ? 'font-medium text-danger-600' : 'text-ink-500'}`}>
                             {formatMoney(m.unpaidFines)}
                           </td>
                         </tr>
@@ -145,7 +145,7 @@ function AddMemberDialog({ open, onClose }: { open: boolean; onClose: () => void
             </select>
           </Field>
         </div>
-        <p className="text-xs text-slate-500">Give the member their starting password. The password needs at least 8 characters, with a letter and a number.</p>
+        <p className="text-xs text-ink-500">Give the member their starting password. The password needs at least 8 characters, with a letter and a number.</p>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="submit" loading={busy}>Create account</Button>

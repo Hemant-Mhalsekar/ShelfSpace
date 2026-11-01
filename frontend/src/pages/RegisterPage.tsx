@@ -36,7 +36,7 @@ export function RegisterPage() {
   }
 
   return (
-    <AuthShell title="Create your account" subtitle={<>Already a member? <Link to="/login" className="font-medium text-indigo-600 hover:underline">Log in</Link></>}>
+    <AuthShell title="Create your account" subtitle={<>Already a member? <Link to="/login" className="font-semibold text-accent-600">Sign in</Link></>}>
       <form onSubmit={onSubmit} className="space-y-4">
         {error && <Alert>{error}</Alert>}
         <Field label="Full name" error={fieldErrors.name}>
@@ -50,9 +50,9 @@ export function RegisterPage() {
         </Field>
         <Field label="Password" error={fieldErrors.password}>
           <input className={inputClass} type="password" required minLength={8} value={form.password} onChange={set('password')} autoComplete="new-password" />
-          <span className="mt-1 block text-xs text-slate-500">At least 8 characters, with a letter and a number.</span>
+          <span className="mt-1 block text-xs text-ink-500">At least 8 characters, with a letter and a number.</span>
         </Field>
-        <Button type="submit" loading={busy} className="w-full">Create account</Button>
+        <Button type="submit" loading={busy} className="w-full py-2.5 text-[15px]">Create Account</Button>
       </form>
     </AuthShell>
   )

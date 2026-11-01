@@ -24,17 +24,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const api = useMemo(() => ({ show }), [show])
 
   const colors: Record<ToastKind, string> = {
-    success: 'bg-emerald-600',
-    error: 'bg-rose-600',
-    info: 'bg-slate-800',
+    success: 'bg-ink-900/90',
+    error: 'bg-danger-600',
+    info: 'bg-ink-900/90',
   }
 
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <div className="pointer-events-none fixed right-4 bottom-4 z-50 flex w-full max-w-sm flex-col gap-2" aria-live="polite">
+      <div className="pointer-events-none fixed bottom-24 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col gap-2 lg:bottom-6" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} className={`pointer-events-auto flex items-start gap-3 rounded-lg px-4 py-3 text-sm text-white shadow-lg ${colors[t.kind]}`}>
+          <div key={t.id} className={`pointer-events-auto flex animate-enter items-start gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-white shadow-[0_12px_32px_-8px_rgba(0,0,0,0.35)] backdrop-blur-xl ${colors[t.kind]}`}>
             <span className="flex-1">{t.message}</span>
             <button onClick={() => dismiss(t.id)} className="opacity-70 hover:opacity-100" aria-label="Dismiss">✕</button>
           </div>

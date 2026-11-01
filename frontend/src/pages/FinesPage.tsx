@@ -18,8 +18,8 @@ export function FinesPage() {
       <PageHeader title="My fines" subtitle="Pay at the library desk; the librarian will mark it paid." />
 
       <Card className="mb-6 flex items-center justify-between p-5">
-        <span className="text-sm text-slate-500">Total unpaid</span>
-        <span className={`text-2xl font-bold ${totalUnpaid > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{formatMoney(totalUnpaid)}</span>
+        <span className="text-sm text-ink-500">Total unpaid</span>
+        <span className={`text-2xl font-bold ${totalUnpaid > 0 ? 'text-danger-600' : 'text-accent-600'}`}>{formatMoney(totalUnpaid)}</span>
       </Card>
 
       {list.length === 0 ? (
@@ -27,7 +27,7 @@ export function FinesPage() {
       ) : (
         <Card className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-200 text-xs tracking-wide text-slate-500 uppercase">
+            <thead className="border-b border-ink-200 text-[13px] text-ink-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Book</th>
                 <th className="px-4 py-3 font-medium">Reason</th>
@@ -36,16 +36,16 @@ export function FinesPage() {
                 <th className="px-4 py-3 font-medium">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-ink-100">
               {list.map((f) => (
                 <tr key={f.id}>
                   <td className="px-4 py-3 font-medium">{f.bookTitle}</td>
-                  <td className="px-4 py-3 text-slate-600">{reasonLabel[f.reason]}</td>
-                  <td className="px-4 py-3 text-slate-600">{formatDate(f.createdAt)}</td>
+                  <td className="px-4 py-3 text-ink-600">{reasonLabel[f.reason]}</td>
+                  <td className="px-4 py-3 text-ink-600">{formatDate(f.createdAt)}</td>
                   <td className="px-4 py-3 text-right font-mono">{formatMoney(f.amount)}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={f.status} />
-                    {f.note && <p className="mt-1 text-xs text-slate-400">{f.note}</p>}
+                    {f.note && <p className="mt-1 text-xs text-ink-500">{f.note}</p>}
                   </td>
                 </tr>
               ))}

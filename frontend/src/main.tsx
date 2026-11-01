@@ -5,6 +5,8 @@ import { RouterProvider } from 'react-router/dom'
 import { ApiError } from './api/client'
 import { AuthProvider } from './auth/AuthContext'
 import { ToastProvider } from './components/toast/ToastProvider'
+// Self-hosted fonts (bundled by Vite; no third-party requests)
+import '@fontsource-variable/inter'
 import './index.css'
 import { router } from './router'
 

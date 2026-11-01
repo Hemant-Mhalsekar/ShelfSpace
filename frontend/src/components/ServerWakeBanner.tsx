@@ -37,7 +37,7 @@ export function ServerWakeBanner() {
 
   if (state === 'slow') {
     return (
-      <div role="status" className="mb-6 flex items-center gap-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200 ring-inset">
+      <div role="status" className="mb-6 flex items-center gap-3 rounded-r-md border-l-4 border-warn-500 bg-warn-50 px-4 py-3 text-sm text-warn-800">
         <span className="inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
         Waking up the server. The free demo host sleeps when idle, so this can take 2–3 minutes. You can log in once this message disappears.
       </div>
@@ -45,7 +45,7 @@ export function ServerWakeBanner() {
   }
   if (state === 'down') {
     return (
-      <div role="alert" className="mb-6 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700 ring-1 ring-rose-200 ring-inset">
+      <div role="alert" className="mb-6 rounded-r-md border-l-4 border-danger-500 bg-danger-50 px-4 py-3 text-sm text-danger-700">
         The server isn't responding right now. Please try again in a minute.
       </div>
     )

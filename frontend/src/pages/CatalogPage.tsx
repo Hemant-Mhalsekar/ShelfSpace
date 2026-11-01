@@ -3,7 +3,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { booksApi } from '../api/endpoints'
 import type { Book } from '../api/types'
-import { Alert, Badge, Card, EmptyState, PageHeader, PageLoader, Pagination } from '../components/ui'
+import { BookCover } from '../components/BookCover'
+import { Alert, EmptyState, PageHeader, PageLoader, Pagination } from '../components/ui'
 import { errorMessage, inputClass } from '../lib/ui-helpers'
 
 /** Search state lives in the URL, so results can be bookmarked and the back button works. */
@@ -42,26 +43,32 @@ export function CatalogPage() {
   const categories = useQuery({ queryKey: ['categories'], queryFn: booksApi.categories, staleTime: 5 * 60_000 })
   const books = useQuery({
     queryKey: ['books', { q, category, availableOnly, page, sort }],
-    queryFn: () => booksApi.search({ q, category, availableOnly, page, size: 12, sort }),
+    queryFn: () => booksApi.search({ q, category, availableOnly, page, size: 24, sort }),
     placeholderData: keepPreviousData,
   })
 
   return (
     <>
       <PageHeader
-        title="Catalog"
-        subtitle={books.data ? `${books.data.totalElements} book${books.data.totalElements === 1 ? '' : 's'}` : 'Search by title, author or ISBN'}
+        title="Browse"
+        subtitle={books.data ? `${books.data.totalElements} book${books.data.totalElements === 1 ? '' : 's'} in the library` : undefined}
       />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center">
-        <input
-          type="search"
-          className={inputClass}
-          placeholder="Search by title, author or ISBN…"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          aria-label="Search books"
-        />
+        <div className="relative">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden
+            className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-500">
+            <path strokeLinecap="round" d="M21 21l-5.2-5.2M10.5 18a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Z" />
+          </svg>
+          <input
+            type="search"
+            className={`${inputClass} pl-10`}
+            placeholder="Titles, authors or ISBN"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            aria-label="Search books"
+          />
+        </div>
         <select
           className={inputClass}
           value={category}
@@ -77,10 +84,10 @@ export function CatalogPage() {
           <option value="publicationYear,desc">Newest first</option>
           <option value="createdAt,desc">Recently added</option>
         </select>
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-ink-700">
           <input
             type="checkbox"
-            className="size-4 rounded border-slate-300 text-indigo-600"
+            className="size-4 rounded accent-accent-600"
             checked={availableOnly}
             onChange={(e) => update({ available: e.target.checked ? '1' : '', page: '' })}
           />
@@ -96,7 +103,7 @@ export function CatalogPage() {
         <EmptyState title="No books found">Try a different search or clear the filters.</EmptyState>
       ) : (
         <>
-          <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${books.isPlaceholderData ? 'opacity-60' : ''}`}>
+          <div className={`grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 ${books.isPlaceholderData ? 'opacity-60' : ''}`}>
             {books.data.content.map((b) => <BookCard key={b.id} book={b} />)}
           </div>
           <Pagination page={books.data.page} totalPages={books.data.totalPages} onChange={(p) => update({ page: p ? String(p) : '' })} />
@@ -108,39 +115,28 @@ export function CatalogPage() {
 
 function BookCard({ book }: { book: Book }) {
   return (
-    <Link to={`/books/${book.id}`} className="group">
-      <Card className="flex h-full gap-4 p-4 transition group-hover:border-indigo-300 group-hover:shadow-md">
-        <BookCover title={book.title} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <h2 className="line-clamp-2 font-semibold text-slate-900 group-hover:text-indigo-700">{book.title}</h2>
-          <p className="mt-0.5 truncate text-sm text-slate-500">{book.author}</p>
-          <p className="mt-1 text-xs text-slate-400">{book.category}{book.publicationYear ? ` · ${book.publicationYear}` : ''}</p>
-          <div className="mt-auto pt-3">
-            <Availability book={book} />
-          </div>
-        </div>
-      </Card>
+    <Link to={`/books/${book.id}`} className="group block">
+      <BookCover title={book.title} author={book.author} isbn={book.isbn} size="fill"
+        className="transition-transform duration-200 group-hover:-translate-y-1" />
+      <h2 className="mt-3 line-clamp-2 text-[15px] leading-snug font-semibold text-ink-900">{book.title}</h2>
+      <p className="mt-0.5 truncate text-[13px] text-ink-500">{book.author}</p>
+      <div className="mt-1"><Availability book={book} /></div>
     </Link>
   )
 }
 
 export function Availability({ book }: { book: Book }) {
-  if (book.totalCopies === 0) return <Badge>No copies yet</Badge>
-  if (book.availableCopies === 0) return <Badge color="amber">All {book.totalCopies} out · reservable</Badge>
-  return <Badge color="green">{book.availableCopies} of {book.totalCopies} available</Badge>
+  if (book.totalCopies === 0) return <span className="text-[13px] text-ink-500">No copies yet</span>
+  if (book.availableCopies === 0) {
+    return <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-accent-600"><Dot className="bg-accent-400" />Waitlist</span>
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-success-700">
+      <Dot className="bg-success-400" />{book.availableCopies} of {book.totalCopies} available
+    </span>
+  )
 }
 
-/** A simple generated "cover": the colour comes from the title, so each book looks different. */
-export function BookCover({ title, large = false }: { title: string; large?: boolean }) {
-  const hue = [...title].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7)
-  return (
-    <div
-      aria-hidden
-      className={`flex shrink-0 items-end rounded-md p-2 font-semibold leading-tight text-white shadow-inner
-        ${large ? 'h-56 w-40 text-base' : 'h-24 w-16 text-[9px]'}`}
-      style={{ background: `linear-gradient(160deg, hsl(${hue} 55% 45%), hsl(${(hue + 40) % 360} 60% 30%))` }}
-    >
-      <span className="line-clamp-4">{title}</span>
-    </div>
-  )
+function Dot({ className }: { className: string }) {
+  return <span aria-hidden className={`inline-block size-1.5 rounded-full ${className}`} />
 }
