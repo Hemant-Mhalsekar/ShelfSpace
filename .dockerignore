@@ -7,3 +7,4 @@ target/
 .env
 build.log
 *.md
+frontend/

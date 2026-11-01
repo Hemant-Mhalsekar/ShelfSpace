@@ -1,6 +1,7 @@
-# Runs MySQL and the ShelfSpace API together:
+# Runs MySQL, the ShelfSpace API and the React web app together:
 #   docker compose up --build
-# API: http://localhost:8080/swagger-ui.html
+# Web app: http://localhost:3000
+# API docs: http://localhost:8080/swagger-ui.html
 services:
   mysql:
     image: mysql:8.4
@@ -36,6 +37,16 @@ services:
       SEED_ENABLED: "true"
     ports:
       - "8080:8080"
+
+  web:
+    build: ./frontend
+    container_name: shelfspace-web
+    depends_on:
+      - app
+    environment:
+      API_URL: http://app:8080
+    ports:
+      - "3000:80"
 
 volumes:
   mysql-data:

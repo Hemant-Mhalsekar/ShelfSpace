@@ -1,6 +1,8 @@
 import { api } from './client'
 import type {
-  AuthResponse, Book, FineSummary, Loan, MemberDashboard, Notification, Page, Reservation, User,
+  AdminDashboard, AuthResponse, Book, BookInput, Copy, CopyStatus, Fine, FineStatus, FineSummary, Loan, LoanStatus,
+  MemberDashboard, MemberDetail, MemberSummary, MembershipTier, Notification, Page, Policy, PolicyInput,
+  Reservation, ReturnResult, Role, User,
 } from './types'
 
 function query(params: Record<string, string | number | boolean | undefined | null>) {
@@ -61,4 +63,57 @@ export const notificationsApi = {
 
 export const dashboardApi = {
   me: () => api<MemberDashboard>('/dashboard/me'),
+  admin: () => api<AdminDashboard>('/dashboard/admin'),
+}
+
+export const policiesApi = {
+  list: () => api<Policy[]>('/policies'),
+  update: (tier: MembershipTier, body: PolicyInput) => api<Policy>(`/policies/${tier}`, { method: 'PUT', body }),
+}
+
+// ---------- Librarian-only endpoints ----------
+
+export const adminBooksApi = {
+  create: (body: BookInput) => api<Book>('/books', { method: 'POST', body }),
+  update: (id: number, body: BookInput) => api<Book>(`/books/${id}`, { method: 'PUT', body }),
+  remove: (id: number) => api<void>(`/books/${id}`, { method: 'DELETE' }),
+  copies: (id: number) => api<Copy[]>(`/books/${id}/copies`),
+  addCopies: (id: number, count: number) => api<Copy[]>(`/books/${id}/copies`, { method: 'POST', body: { count } }),
+  setCopyStatus: (copyId: number, status: CopyStatus, note?: string) =>
+    api<Copy>(`/copies/${copyId}/status`, { method: 'PATCH', body: { status, note } }),
+}
+
+export const adminLoansApi = {
+  search: (p: { status?: LoanStatus; memberId?: number; page?: number; sort?: string }) =>
+    api<Page<Loan>>(`/loans${query({ ...p, size: 20 })}`),
+  approve: (id: number) => api<Loan>(`/loans/${id}/approve`, { method: 'POST' }),
+  reject: (id: number, reason?: string) => api<Loan>(`/loans/${id}/reject`, { method: 'POST', body: { reason } }),
+  returnBook: (id: number) => api<ReturnResult>(`/loans/${id}/return`, { method: 'POST' }),
+  markLost: (id: number) => api<ReturnResult>(`/loans/${id}/lost`, { method: 'POST' }),
+}
+
+export interface MemberSearch {
+  q?: string
+  status?: 'ACTIVE' | 'SUSPENDED'
+  tier?: MembershipTier
+  role?: Role
+  page?: number
+}
+
+export const membersApi = {
+  search: (s: MemberSearch) => api<Page<MemberSummary>>(`/members${query({ ...s, size: 20 })}`),
+  get: (id: number) => api<MemberDetail>(`/members/${id}`),
+  create: (body: { name: string; email: string; phone?: string; password: string; membershipTier: MembershipTier; role?: Role }) =>
+    api<MemberSummary>('/members', { method: 'POST', body }),
+  update: (id: number, body: { name: string; phone?: string | null; membershipTier: MembershipTier }) =>
+    api<MemberSummary>(`/members/${id}`, { method: 'PUT', body }),
+  suspend: (id: number, reason: string) => api<MemberSummary>(`/members/${id}/suspend`, { method: 'POST', body: { reason } }),
+  activate: (id: number) => api<MemberSummary>(`/members/${id}/activate`, { method: 'POST' }),
+}
+
+export const adminFinesApi = {
+  search: (p: { status?: FineStatus; memberId?: number; page?: number }) =>
+    api<Page<Fine>>(`/fines${query({ ...p, size: 20 })}`),
+  pay: (id: number) => api<Fine>(`/fines/${id}/pay`, { method: 'POST' }),
+  waive: (id: number, note: string) => api<Fine>(`/fines/${id}/waive`, { method: 'POST', body: { note } }),
 }

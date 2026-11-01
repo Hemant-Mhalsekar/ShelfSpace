@@ -4,8 +4,10 @@
 ![Java 21](https://img.shields.io/badge/Java-21-orange)
 ![Spring Boot 3.3](https://img.shields.io/badge/Spring%20Boot-3.3-6DB33F)
 ![MySQL 8](https://img.shields.io/badge/MySQL-8-4479A1)
+![React 19](https://img.shields.io/badge/React-19-61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6)
 
-A library management backend built with Java and Spring Boot. Librarians manage the catalog and approve loans. Members search, borrow, renew and reserve books. Fines, waiting lists, reminders and dashboards run automatically.
+A full-stack library management system: a Spring Boot REST API and a React web app. Librarians manage the catalog, members and loans. Members search, borrow, renew and reserve books. Fines, waiting lists, reminders and dashboards run automatically.
 
 ## Highlights
 
@@ -22,7 +24,8 @@ A library management backend built with Java and Spring Boot. Librarians manage 
 
 ```mermaid
 flowchart LR
-    C[Client / Swagger UI] -->|JSON + Bearer JWT| F[JWT filter<br/>Spring Security]
+    W[React app<br/>nginx] -->|/api, JSON + Bearer JWT| F[JWT filter<br/>Spring Security]
+    C[Swagger UI / curl] --> F
     F --> CT[REST controllers<br/>/api/v1/...]
     CT --> S[Services<br/>business rules]
     S --> R[Spring Data JPA<br/>repositories]
@@ -37,7 +40,11 @@ The code is a **modular monolith**: one deployable app, with packages split by f
 
 ## Tech stack
 
-Java 21 · Spring Boot 3.3 · Spring Security (JWT, method-level roles) · Spring Data JPA / Hibernate 6 · MySQL 8 · Flyway · springdoc OpenAPI · JUnit 5 · Testcontainers · Docker · GitHub Actions
+**Backend:** Java 21 · Spring Boot 3.3 · Spring Security (JWT, method-level roles) · Spring Data JPA / Hibernate 6 · MySQL 8 · Flyway · springdoc OpenAPI · JUnit 5 · Testcontainers
+
+**Frontend:** React 19 · TypeScript · Vite · Tailwind CSS 4 · React Router · TanStack Query
+
+**Ops:** Docker (API + nginx-served web app) · GitHub Actions
 
 ## Quick start
 
@@ -49,8 +56,21 @@ cd ShelfSpace
 docker compose up --build
 ```
 
+- **Web app: http://localhost:3000.** Use the *Member* or *Librarian* demo buttons on the login page.
 - Swagger UI: http://localhost:8080/swagger-ui.html (click **Authorize** and paste a token)
 - Health: http://localhost:8080/actuator/health
+
+### What's in the web app
+
+| Members | Librarians |
+|---|---|
+| Catalog search with filters, book page with Borrow / Reserve | Dashboard: live stats, top books, 6-month chart |
+| Dashboard: loans, due dates, overdue fines, reservations with queue position | Loan desk: approve/reject requests, check in, mark lost |
+| Renew, cancel requests and reservations | Books: add, edit, add copies, mark copies damaged/lost |
+| Notifications with unread badge; fines | Members: search, profile, tier changes, suspend/reactivate |
+| | Fines (pay/waive) and an editor for borrowing rules |
+
+Frontend development: see [`frontend/README.md`](frontend/README.md). In short: `cd frontend && npm install && npm run dev`, with the API on port 8080.
 
 To run from source instead, you need JDK 21, plus Docker for the database and tests:
 
@@ -372,6 +392,7 @@ src/main/java/com/shelfspace
 ├── audit         # audit trail
 └── common        # security, error handling, paging, clock, scheduling
 src/main/resources/db/migration   # Flyway V1..V3
+frontend/                         # React app (see frontend/README.md)
 ```
 
 ## Deploying (Railway)
@@ -404,7 +425,7 @@ The app listens on `$PORT` (set by the platform) and has no other host-specific 
 - [ ] Email notifications (SMTP) behind `NotificationService`
 - [ ] Refresh-token revocation and login rate limiting
 - [ ] Recommendations ("members who borrowed this also borrowed")
-- [ ] React frontend
+- [x] React frontend (member and librarian screens)
 
 ## Branching
 
