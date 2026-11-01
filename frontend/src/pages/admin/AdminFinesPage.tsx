@@ -30,7 +30,7 @@ export function AdminFinesPage() {
       <PageHeader
         title="Fines"
         subtitle={memberId
-          ? <>One member's fines · <button className="text-indigo-600 hover:underline" onClick={() => { params.delete('memberId'); setParams(params) }}>show everyone</button></>
+          ? <>One member's fines · <button className="text-accent-600 hover:underline" onClick={() => { params.delete('memberId'); setParams(params) }}>show everyone</button></>
           : 'Record payments at the desk, or waive a fine with a reason'}
       />
       <Tabs<FineStatus>
@@ -46,7 +46,7 @@ export function AdminFinesPage() {
               <>
                 <Card className={`overflow-x-auto ${fines.isPlaceholderData ? 'opacity-60' : ''}`}>
                   <table className="w-full text-left text-sm">
-                    <thead className="border-b border-slate-200 text-xs tracking-wide text-slate-500 uppercase">
+                    <thead className="border-b border-ink-200 text-[13px] text-ink-500">
                       <tr>
                         <th className="px-4 py-3 font-medium">Book</th>
                         <th className="px-4 py-3 font-medium">Reason</th>
@@ -56,7 +56,7 @@ export function AdminFinesPage() {
                         <th className="px-4 py-3"><span className="sr-only">Actions</span></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-ink-100">
                       {fines.data.content.map((f) => <FineRow key={f.id} fine={f} onWaive={() => setWaiving(f)} />)}
                     </tbody>
                   </table>
@@ -92,14 +92,14 @@ function FineRow({ fine: f, onWaive }: { fine: Fine; onWaive: () => void }) {
     <tr>
       <td className="px-4 py-3">
         <p className="font-medium">{f.bookTitle}</p>
-        <Link to={`/admin/members/${f.memberId}`} className="text-xs text-indigo-600 hover:underline">View member</Link>
+        <Link to={`/admin/members/${f.memberId}`} className="text-xs text-accent-600 hover:underline">View member</Link>
       </td>
-      <td className="px-4 py-3 text-slate-600">{reasonLabel[f.reason]}</td>
-      <td className="px-4 py-3 text-slate-600">{formatDate(f.createdAt)}</td>
+      <td className="px-4 py-3 text-ink-600">{reasonLabel[f.reason]}</td>
+      <td className="px-4 py-3 text-ink-600">{formatDate(f.createdAt)}</td>
       <td className="px-4 py-3 text-right font-mono">{formatMoney(f.amount)}</td>
       <td className="px-4 py-3">
         <StatusBadge status={f.status} />
-        {f.note && <p className="mt-1 max-w-48 truncate text-xs text-slate-400" title={f.note}>{f.note}</p>}
+        {f.note && <p className="mt-1 max-w-48 truncate text-xs text-ink-500" title={f.note}>{f.note}</p>}
       </td>
       <td className="px-4 py-3">
         {f.status === 'UNPAID' && (
@@ -124,7 +124,7 @@ function WaiveDialog({ fine, onClose }: { fine: Fine; onClose: () => void }) {
 
   return (
     <Modal title={`Waive ${formatMoney(fine.amount)}?`} open onClose={onClose}>
-      <p className="mb-4 text-sm text-slate-600">For “{fine.bookTitle}”. The reason is shown to the member and kept in the audit log.</p>
+      <p className="mb-4 text-sm text-ink-600">For “{fine.bookTitle}”. The reason is shown to the member and kept in the audit log.</p>
       {waive.error && <div className="mb-3"><Alert>{errorMessage(waive.error)}</Alert></div>}
       <Field label="Reason">
         <input className={inputClass} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Library was closed for 2 days" maxLength={255} autoFocus />

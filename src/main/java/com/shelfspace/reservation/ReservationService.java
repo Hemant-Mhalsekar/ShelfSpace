@@ -20,6 +20,7 @@ import com.shelfspace.notification.NotificationType;
 import com.shelfspace.policy.BorrowingPolicy;
 import com.shelfspace.policy.PolicyService;
 import com.shelfspace.reservation.dto.ReservationResponse;
+import com.shelfspace.wishlist.WishlistService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -61,6 +62,7 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final PolicyService policyService;
     private final NotificationService notificationService;
+    private final WishlistService wishlistService;
     private final Clock clock;
 
     // ---------- Member actions ----------
@@ -139,7 +141,11 @@ public class ReservationService {
                 reservationRepository.findFirstByBookIdAndStatusOrderByIdAsc(bookId, ReservationStatus.WAITING);
 
         if (next.isEmpty()) {
+            boolean wasAllOut = copyRepository.countByBookIdAndStatusAndIdNot(bookId, CopyStatus.AVAILABLE, copy.getId()) == 0;
             copy.setStatus(CopyStatus.AVAILABLE);
+            if (wasAllOut) {
+                wishlistService.notifyBookAvailable(copy.getBook());   // "back in stock" alert
+            }
             return;
         }
 
@@ -216,7 +222,8 @@ public class ReservationService {
             }
         }
         boolean ready = r.getStatus() == ReservationStatus.READY;
-        return new ReservationResponse(r.getId(), r.getBook().getId(), r.getBook().getTitle(), r.getStatus(),
+        return new ReservationResponse(r.getId(), r.getBook().getId(), r.getBook().getTitle(),
+                r.getBook().getAuthor(), r.getBook().getIsbn(), r.getStatus(),
                 position, estimate,
                 ready && r.getHeldCopy() != null ? r.getHeldCopy().getBarcode() : null,
                 ready ? r.getExpiresAt() : null,

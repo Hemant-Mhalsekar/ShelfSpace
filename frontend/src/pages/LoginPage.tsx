@@ -42,7 +42,7 @@ export function LoginPage() {
   }
 
   return (
-    <AuthShell title="Welcome back" subtitle={<>New here? <Link to="/register" className="font-medium text-indigo-600 hover:underline">Create an account</Link></>}>
+    <AuthShell title="Sign in to ShelfSpace" subtitle={<>New here? <Link to="/register" className="font-semibold text-accent-600">Create an account</Link></>}>
       <form onSubmit={onSubmit} className="space-y-4">
         {error && <Alert>{error}</Alert>}
         <Field label="Email">
@@ -51,11 +51,11 @@ export function LoginPage() {
         <Field label="Password">
           <input className={inputClass} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </Field>
-        <Button type="submit" loading={busy} className="w-full">Log in</Button>
+        <Button type="submit" loading={busy} className="w-full py-2.5 text-[15px]">Sign In</Button>
       </form>
 
-      <div className="mt-8 rounded-lg bg-slate-100 p-4">
-        <p className="mb-3 text-xs font-semibold tracking-wide text-slate-500 uppercase">Try a demo account</p>
+      <div className="mt-6 border-t border-ink-200 pt-5">
+        <p className="mb-3 text-center text-[13px] text-ink-500">Just looking around? Try a demo account</p>
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary" disabled={busy} onClick={() => signIn(DEMO.member.email, DEMO.member.password)}>Member</Button>
           <Button variant="secondary" disabled={busy} onClick={() => signIn(DEMO.admin.email, DEMO.admin.password)}>Librarian</Button>

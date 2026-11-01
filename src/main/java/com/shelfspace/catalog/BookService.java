@@ -92,7 +92,7 @@ public class BookService {
 
         int copies = req.initialCopies() == null ? 0 : req.initialCopies();
         if (copies > 0) {
-            createCopies(book, copies);
+            createCopies(book, copies, CopyStatus.AVAILABLE);
         }
         auditService.record(adminId, "BOOK_CREATED", "Book", book.getId(),
                 "isbn=" + isbn + ", copies=" + copies);
@@ -138,8 +138,10 @@ public class BookService {
     @Transactional
     public List<CopyResponse> addCopies(Long bookId, int count, Long adminId) {
         Book book = findBook(bookId);
-        List<BookCopy> created = createCopies(book, count);
-        created.forEach(reservationService::releaseCopy);   // members waiting for this book get them first
+        // Created "held" first, then released one by one: waiting members get them first,
+        // and wishlist alerts fire only if the book had no copies on the shelf before.
+        List<BookCopy> created = createCopies(book, count, CopyStatus.ON_HOLD);
+        created.forEach(reservationService::releaseCopy);
         auditService.record(adminId, "COPIES_ADDED", "Book", bookId, "count=" + count);
         return created.stream().map(CopyResponse::from).toList();
     }
@@ -175,14 +177,14 @@ public class BookService {
     }
 
     /** Barcodes look like SS000012-003: book id + running number. */
-    private List<BookCopy> createCopies(Book book, int count) {
+    private List<BookCopy> createCopies(Book book, int count, CopyStatus initialStatus) {
         long existing = copyRepository.countByBookId(book.getId());
         List<BookCopy> copies = new ArrayList<>(count);
         for (int i = 1; i <= count; i++) {
             BookCopy copy = new BookCopy();
             copy.setBook(book);
             copy.setBarcode("SS%06d-%03d".formatted(book.getId(), existing + i));
-            copy.setStatus(CopyStatus.AVAILABLE);
+            copy.setStatus(initialStatus);
             copies.add(copy);
         }
         return copyRepository.saveAll(copies);

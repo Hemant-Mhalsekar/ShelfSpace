@@ -19,6 +19,7 @@ import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { WishlistPage } from './pages/WishlistPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
           { path: '/books/:id', element: <BookPage /> },
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/fines', element: <FinesPage /> },
+          { path: '/wishlist', element: <WishlistPage /> },
           { path: '/notifications', element: <NotificationsPage /> },
           {
             path: '/admin',

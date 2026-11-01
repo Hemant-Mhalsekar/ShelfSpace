@@ -1,5 +1,110 @@
 @import "tailwindcss";
 
+/*
+ * Visual language modelled on Apple Books / Libby: white and light-grey surfaces, near-black text,
+ * system fonts, big covers, pill buttons, one vivid orange accent.
+ * Text contrast on white (checked): ink-500 5.0:1, accent-600 5.2:1, white on accent-600 5.2:1,
+ * success-700 6.6:1, danger-600 5.5:1. ink-400 / accent-400 are decorative only, never body text.
+ */
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Variable", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter Variable", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* surfaces */
+  --color-canvas-50: #ffffff;
+  --color-canvas-100: #f5f5f7;
+  --color-canvas-200: #ececf0;
+  --color-canvas-300: #dcdce1;
+
+  /* neutrals */
+  --color-ink-50: #f9f9fb;
+  --color-ink-100: #f2f2f7;
+  --color-ink-200: #e5e5ea;
+  --color-ink-300: #d1d1d6;
+  --color-ink-400: #aeaeb2;
+  --color-ink-500: #6e6e73;
+  --color-ink-600: #515154;
+  --color-ink-700: #3a3a3c;
+  --color-ink-800: #2c2c2e;
+  --color-ink-900: #1d1d1f;
+  --color-ink-950: #000000;
+
+  /* accent: Books orange */
+  --color-accent-50: #fff4ec;
+  --color-accent-100: #ffe4cf;
+  --color-accent-200: #ffc59a;
+  --color-accent-300: #ff9f5c;
+  --color-accent-400: #ff7a1a;
+  --color-accent-500: #f25f00;
+  --color-accent-600: #c2410c;
+  --color-accent-700: #9a3412;
+  --color-accent-800: #7c2d12;
+  --color-accent-900: #5a200d;
+
+  /* due soon / waiting */
+  --color-warn-50: #fff8e6;
+  --color-warn-100: #feecc0;
+  --color-warn-200: #fdd88a;
+  --color-warn-300: #fbbf4d;
+  --color-warn-400: #f5a524;
+  --color-warn-500: #d98a06;
+  --color-warn-600: #a86a00;
+  --color-warn-700: #855300;
+  --color-warn-800: #613c00;
+  --color-warn-900: #432a00;
+
+  --color-danger-50: #fff1f0;
+  --color-danger-100: #ffdcd9;
+  --color-danger-200: #ffb4ad;
+  --color-danger-300: #ff8a80;
+  --color-danger-400: #ff5a4e;
+  --color-danger-500: #e5372a;
+  --color-danger-600: #c4291d;
+  --color-danger-700: #a11f15;
+  --color-danger-800: #7d1810;
+  --color-danger-900: #5c120c;
+
+  --color-success-50: #effbf2;
+  --color-success-100: #d4f4dd;
+  --color-success-200: #a6e8b8;
+  --color-success-300: #6fd48c;
+  --color-success-400: #3dbb63;
+  --color-success-500: #279e4c;
+  --color-success-600: #1f7f3d;
+  --color-success-700: #186331;
+  --color-success-800: #134d27;
+  --color-success-900: #0e391d;
+
+  --animate-enter: enter 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas-50);
+    color: var(--color-ink-900);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.006em;
+  }
+  ::selection {
+    background: var(--color-accent-100);
+  }
+  a:focus-visible,
+  button:focus-visible,
+  [role="tab"]:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--color-accent-400) 60%, transparent);
+    outline-offset: 2px;
+    border-radius: 10px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }

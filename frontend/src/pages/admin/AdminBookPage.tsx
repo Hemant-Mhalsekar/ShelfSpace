@@ -42,11 +42,11 @@ export function AdminBookPage() {
 
   return (
     <>
-      <Link to="/admin/books" className="mb-6 inline-block text-sm text-slate-500 hover:text-slate-800">← All books</Link>
+      <Link to="/admin/books" className="mb-6 inline-block text-sm text-ink-500 hover:text-ink-800">← All books</Link>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{b.title}</h1>
-          <p className="mt-1 flex items-center gap-3 text-slate-500">{b.author} <Availability book={b} /></p>
+          <p className="mt-1 flex items-center gap-3 text-ink-500">{b.author} <Availability book={b} /></p>
         </div>
         <ConfirmButton loading={remove.isPending} onConfirm={() => remove.mutate()} confirmLabel="Confirm delete">Delete book</ConfirmButton>
       </div>
@@ -68,12 +68,12 @@ export function AdminBookPage() {
 
         <Card className="p-5 lg:col-span-2">
           <h2 className="mb-1 font-semibold">Copies</h2>
-          <p className="mb-4 text-xs text-slate-500">Borrowed and on-hold copies are managed by the loan desk and reservations.</p>
+          <p className="mb-4 text-xs text-ink-500">Borrowed and on-hold copies are managed by the loan desk and reservations.</p>
           <AddCopies bookId={id} onDone={refresh} />
           {copies.isPending ? <PageLoader />
             : copies.isError ? <Alert>{errorMessage(copies.error)}</Alert>
-              : copies.data.length === 0 ? <p className="text-sm text-slate-500">No copies yet.</p>
-                : <ul className="divide-y divide-slate-100">{copies.data.map((c) => <CopyRow key={c.id} copy={c} onDone={refresh} />)}</ul>}
+              : copies.data.length === 0 ? <p className="text-sm text-ink-500">No copies yet.</p>
+                : <ul className="divide-y divide-ink-100">{copies.data.map((c) => <CopyRow key={c.id} copy={c} onDone={refresh} />)}</ul>}
         </Card>
       </div>
     </>
@@ -120,7 +120,7 @@ function CopyRow({ copy, onDone }: { copy: Copy; onDone: () => void }) {
     <li className="flex items-center gap-3 py-2.5">
       <div className="min-w-0 flex-1">
         <p className="font-mono text-sm">{copy.barcode}</p>
-        <p className="text-xs text-slate-400">updated {formatDateTime(copy.updatedAt)}</p>
+        <p className="text-xs text-ink-500">updated {formatDateTime(copy.updatedAt)}</p>
       </div>
       {locked ? <StatusBadge status={copy.status} /> : (
         <select
