@@ -3,11 +3,14 @@
 [![CI](https://github.com/Hemant-Mhalsekar/ShelfSpace/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/Hemant-Mhalsekar/ShelfSpace/actions/workflows/ci.yml)
 ![Java 21](https://img.shields.io/badge/Java-21-orange)
 ![Spring Boot 3.3](https://img.shields.io/badge/Spring%20Boot-3.3-6DB33F)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://shelf-space-pi.vercel.app)
 ![MySQL 8](https://img.shields.io/badge/MySQL-8-4479A1)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6)
 
 A full-stack library management system: a Spring Boot REST API and a React web app. Librarians manage the catalog, members and loans. Members search, borrow, renew and reserve books. Fines, waiting lists, reminders and dashboards run automatically.
+
+**Live demo: https://shelf-space-pi.vercel.app**. Log in with the *Member* or *Librarian* demo buttons. The API runs on a free host, so if nobody has used it for a while, the first load can take a couple of minutes.
 
 ## Highlights
 
