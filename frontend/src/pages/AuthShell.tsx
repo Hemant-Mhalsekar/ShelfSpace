@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { ServerWakeBanner } from '../components/ServerWakeBanner'
 
 export function AuthShell({ title, subtitle, children }: { title: string; subtitle: ReactNode; children: ReactNode }) {
   return (
@@ -19,6 +20,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
         <div className="w-full max-w-sm">
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           <p className="mt-1 mb-8 text-sm text-slate-500">{subtitle}</p>
+          <ServerWakeBanner />
           {children}
         </div>
       </div>
