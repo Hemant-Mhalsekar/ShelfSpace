@@ -397,9 +397,10 @@ frontend/                         # React app (see frontend/README.md)
 
 ## Deploying (Railway)
 
-1. On [railway.app](https://railway.app), create **New Project → Deploy from GitHub repo** and pick this repo. Railway builds it from the `Dockerfile`.
-2. In the same project, add a database with **+ New → Database → MySQL**.
-3. In the app service's **Variables**, set:
+The stack runs as three Railway services in one project: **MySQL**, the **API** (root `Dockerfile`) and the **web** app (`frontend/Dockerfile`).
+
+1. **MySQL:** **+ New → Database → MySQL**.
+2. **API:** **+ New → GitHub Repo → ShelfSpace** (it builds from the root `Dockerfile`). Under **Variables**, set:
 
    | Variable | Value |
    |---|---|
@@ -408,12 +409,22 @@ frontend/                         # React app (see frontend/README.md)
    | `DB_NAME` | `${{MySQL.MYSQLDATABASE}}` |
    | `DB_USERNAME` | `${{MySQL.MYSQLUSER}}` |
    | `DB_PASSWORD` | `${{MySQL.MYSQLPASSWORD}}` |
+   | `DB_PARAMS` | `?allowPublicKeyRetrieval=true&useSSL=false` |
    | `JWT_SECRET` | a random string of 64+ characters |
-   | `SEED_ENABLED` | `true` for a public demo (creates the demo accounts), `false` otherwise |
+   | `SEED_ENABLED` | `true` for a public demo (creates the demo accounts) |
+   | `PORT` | `8080` |
 
-4. Under **Settings → Networking → Generate Domain**, create a public URL, then open `/swagger-ui.html`.
+   Under **Settings → Networking**, click **Generate Domain**.
+3. **Web:** **+ New → GitHub Repo → ShelfSpace** again. Under **Settings → Source**, set **Root Directory** to `/frontend`. Then set these **Variables**:
 
-The app listens on `$PORT` (set by the platform) and has no other host-specific config, so Render, Fly.io or a VM work the same way.
+   | Variable | Value |
+   |---|---|
+   | `API_URL` | `https://${{API.RAILWAY_PUBLIC_DOMAIN}}` (use your API service's name in place of `API`) |
+   | `PORT` | `80` |
+
+   Under **Settings → Networking**, click **Generate Domain**. That domain is the live app.
+
+The API listens on `$PORT` and nginx forwards `/api` to `API_URL`, so nothing else is host-specific. Render, Fly.io or a VM work the same way.
 
 ## Roadmap
 
