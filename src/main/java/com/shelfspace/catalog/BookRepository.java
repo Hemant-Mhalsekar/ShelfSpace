@@ -32,6 +32,12 @@ public interface BookRepository extends JpaRepository<Book, Long> {
                       @Param("availableOnly") boolean availableOnly,
                       Pageable pageable);
 
+    /** Newest books in a category; recommendation fallback when nothing has been borrowed yet. */
+    List<Book> findByCategoryAndIdNotInOrderByCreatedAtDesc(String category, java.util.Collection<Long> excludeIds,
+                                                           Pageable pageable);
+
+    List<Book> findByIdNotInOrderByCreatedAtDesc(java.util.Collection<Long> excludeIds, Pageable pageable);
+
     @Query("SELECT DISTINCT b.category FROM Book b ORDER BY b.category")
     List<String> findAllCategories();
 }
