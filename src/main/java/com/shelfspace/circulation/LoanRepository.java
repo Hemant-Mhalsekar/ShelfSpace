@@ -54,6 +54,22 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     long countByStatusIn(Collection<LoanStatus> statuses);
 
+    /** Active and overdue loan counts for many members in one query (used by the member list). */
+    @Query("""
+            SELECT l.member.id AS memberId,
+                   COUNT(l) AS active,
+                   SUM(CASE WHEN l.dueDate < :today
+                             AND l.status IN (com.shelfspace.circulation.LoanStatus.ISSUED,
+                                              com.shelfspace.circulation.LoanStatus.OVERDUE)
+                            THEN 1 ELSE 0 END) AS overdue
+            FROM Loan l
+            WHERE l.member.id IN :memberIds AND l.status IN :statuses
+            GROUP BY l.member.id
+            """)
+    List<com.shelfspace.member.MemberLoanCounts> countsForMembers(@Param("memberIds") Collection<Long> memberIds,
+                                                                @Param("statuses") Collection<LoanStatus> statuses,
+                                                                @Param("today") LocalDate today);
+
     long countByStatusInAndDueDateBefore(Collection<LoanStatus> statuses, LocalDate date);
 
     @EntityGraph(attributePaths = {"member", "copy", "copy.book"})

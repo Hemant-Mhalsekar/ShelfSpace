@@ -69,7 +69,7 @@ public abstract class IntegrationTest {
     }
 
     /** A freshly registered STUDENT member, so tests never share loan or fine state. */
-    protected record TestMember(long id, String email, String token) {
+    public record TestMember(long id, String email, String token) {
     }
 
     protected TestMember newMember() throws Exception {
