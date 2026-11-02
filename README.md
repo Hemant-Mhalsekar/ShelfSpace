@@ -106,8 +106,3 @@ Both run in GitHub Actions on every push.
 - [Testing](docs/testing.md): what the backend and frontend suites cover
 - [Deploying](docs/deployment.md): free hosting on Vercel, Render and Aiven
 - [Development](docs/development.md): running from source, frontend dev server, branching
-
-## Roadmap
-
-- [ ] End-to-end browser test (Playwright) in CI
-- [ ] Email notifications, with "Forgot password"
