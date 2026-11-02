@@ -219,3 +219,21 @@ export interface Recommendation {
   book: Book
   reason: string
 }
+
+// ---------- Audit log ----------
+
+export type AuditCategory = 'BOOKS' | 'LOANS' | 'FINES' | 'MEMBERS' | 'RULES'
+
+export interface AuditEntry {
+  id: number
+  createdAt: string
+  action: string
+  actorId: number | null
+  actorName: string | null
+  entityType: string
+  entityId: number | null
+  entityLabel: string | null
+  bookId: number | null
+  memberId: number | null
+  details: string | null
+}

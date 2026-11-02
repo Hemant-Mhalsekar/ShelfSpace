@@ -6,6 +6,7 @@ import { RequireAuth } from './components/RequireAuth'
 import { AdminBookPage } from './pages/admin/AdminBookPage'
 import { AdminBooksPage } from './pages/admin/AdminBooksPage'
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
+import { ActivityPage } from './pages/admin/ActivityPage'
 import { AdminFinesPage } from './pages/admin/AdminFinesPage'
 import { LoanDeskPage } from './pages/admin/LoanDeskPage'
 import { MemberPage } from './pages/admin/MemberPage'
@@ -51,6 +52,7 @@ export const router = createBrowserRouter([
               { path: 'members/:id', element: <MemberPage /> },
               { path: 'fines', element: <AdminFinesPage /> },
               { path: 'rules', element: <RulesPage /> },
+              { path: 'activity', element: <ActivityPage /> },
             ],
           },
           { path: '*', element: <NotFoundPage /> },

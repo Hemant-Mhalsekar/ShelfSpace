@@ -59,6 +59,31 @@ export async function api<T>(path: string, options: { method?: Method; body?: un
   return parse<T>(response)
 }
 
+/**
+ * Downloads a file from an authenticated endpoint (a plain link can't send the token).
+ * The server's Content-Disposition decides the file name.
+ */
+export async function download(path: string): Promise<void> {
+  // Not send(): that asks for JSON, and the server would refuse to answer a CSV endpoint with JSON.
+  const get = () => fetch(BASE + path, { headers: tokens.access ? { Authorization: `Bearer ${tokens.access}` } : {} })
+  let response = await get()
+  if (response.status === 401 && tokens.refresh && (await refreshTokens())) {
+    response = await get()
+  }
+  if (!response.ok) {
+    await parse(response)   // throws ApiError with the server's message
+  }
+  const name = /filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') ?? '')?.[1] ?? 'download'
+  const url = URL.createObjectURL(await response.blob())
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  document.body.append(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 function send(path: string, { method = 'GET', body }: { method?: Method; body?: unknown }, token: string | null) {
   const headers: Record<string, string> = { Accept: 'application/json' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
