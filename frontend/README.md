@@ -22,6 +22,8 @@ Vite forwards `/api` to `localhost:8080`, so there's no CORS setup. Log in with 
 | `npm run dev` | Dev server with hot reload |
 | `npm run build` | Type-check (`tsc`) and production build into `dist/` |
 | `npm run lint` | Lint with oxlint |
+| `npm test` | Component tests (Vitest + React Testing Library, mocked API via MSW) |
+| `npm run test:watch` | Same, re-running on every save |
 | `npm run preview` | Serve the production build locally |
 
 ## Structure
