@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import { ApiError } from '../../api/client'
-import { membersApi } from '../../api/endpoints'
+import { adminLoansApi, membersApi } from '../../api/endpoints'
 import type { Loan, MemberSummary, MembershipTier } from '../../api/types'
 import { useAuth } from '../../auth/useAuth'
 import { Modal } from '../../components/Modal'
@@ -110,6 +110,7 @@ function LoanList({ title, loans, empty, memberId }: { title: string; loans: Loa
                 {l.returnedAt ? formatDate(l.returnedAt) : l.dueDate ? `due ${formatDate(l.dueDate)}` : ''}
                 {l.overdueDays ? <span className="text-danger-600">{l.overdueDays}d late</span> : null}
                 <StatusBadge status={l.status} />
+                {memberId && (l.status === 'ISSUED' || l.status === 'OVERDUE') && <CheckInButton loanId={l.id} memberId={memberId} />}
               </span>
             </li>
           ))}
@@ -234,5 +235,30 @@ function ResetPasswordDialog({ member, open, onClose }: { member: MemberSummary;
         </div>
       </form>
     </Modal>
+  )
+}
+
+/** Same as the Loan Desk's Check in, right where the librarian is looking at the member. */
+function CheckInButton({ loanId, memberId }: { loanId: number; memberId: number }) {
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const refresh = useRefreshMember(memberId)
+  const checkIn = useMutation({
+    mutationFn: () => adminLoansApi.returnBook(loanId),
+    onSuccess: (r) => {
+      toast.show(r.fineCharged > 0
+        ? `Returned ${r.overdueDays} day(s) late. Fine of ${formatMoney(r.fineCharged)} charged.`
+        : 'Returned on time. No fine.', r.fineCharged > 0 ? 'info' : 'success')
+      refresh()
+      void queryClient.invalidateQueries({ queryKey: ['loans'] })
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      void queryClient.invalidateQueries({ queryKey: ['books'] })
+    },
+    onError: (e) => toast.show(errorMessage(e), 'error'),
+  })
+  return (
+    <Button variant="secondary" className="px-3 py-1 text-[13px]" loading={checkIn.isPending} onClick={() => checkIn.mutate()}>
+      Check in
+    </Button>
   )
 }
