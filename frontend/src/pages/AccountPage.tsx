@@ -36,6 +36,13 @@ export function AccountPage() {
           </Card>
         </section>
 
+        <section>
+          <SectionTitle>Devices</SectionTitle>
+          <Card className="p-5 sm:p-6">
+            <SignOutEverywhere />
+          </Card>
+        </section>
+
         {!isAdmin && (
           <section>
             <SectionTitle>Your Membership</SectionTitle>
@@ -94,13 +101,14 @@ const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,72}$/
 
 function PasswordForm() {
   const toast = useToast()
+  const { adoptSession } = useAuth()
   const empty = { current: '', next: '', confirm: '' }
   const [form, setForm] = useState(empty)
   const [error, setError] = useState<string | null>(null)
 
   const change = useMutation({
     mutationFn: () => accountApi.changePassword(form.current, form.next),
-    onSuccess: () => { setForm(empty); toast.show('Password changed') },
+    onSuccess: (auth) => { adoptSession(auth); setForm(empty); toast.show('Password changed. Other devices have been signed out.') },
     onError: (e) => setError(e instanceof ApiError && Object.keys(e.fieldErrors).length
       ? Object.values(e.fieldErrors)[0]
       : errorMessage(e)),
@@ -143,6 +151,38 @@ function PasswordForm() {
         </Button>
       </div>
     </form>
+  )
+}
+
+function SignOutEverywhere() {
+  const toast = useToast()
+  const { adoptSession } = useAuth()
+  const [confirming, setConfirming] = useState(false)
+  const signOut = useMutation({
+    mutationFn: accountApi.signOutEverywhere,
+    onSuccess: (auth) => { adoptSession(auth); setConfirming(false); toast.show('Signed out of all other devices') },
+    onError: (e) => toast.show(errorMessage(e), 'error'),
+  })
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="min-w-0 flex-1 basis-64">
+        <p className="text-[15px] font-medium text-ink-900">Sign out of other devices</p>
+        <p className="mt-0.5 text-[13px] text-ink-500">
+          {confirming
+            ? 'Every other phone, tablet or browser will need to sign in again. You stay signed in here.'
+            : 'Left yourself signed in on a shared computer? End those sessions here.'}
+        </p>
+      </div>
+      {confirming ? (
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => setConfirming(false)}>Cancel</Button>
+          <Button variant="danger" loading={signOut.isPending} onClick={() => signOut.mutate()}>Sign Out Others</Button>
+        </div>
+      ) : (
+        <Button variant="secondary" onClick={() => setConfirming(true)}>Sign Out Others…</Button>
+      )}
+    </div>
   )
 }
 

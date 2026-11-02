@@ -2,10 +2,12 @@ package com.shelfspace.common.exception;
 
 import com.shelfspace.auth.InvalidCredentialsException;
 import com.shelfspace.auth.InvalidTokenException;
+import com.shelfspace.auth.ratelimit.TooManyRequestsException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -39,6 +41,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<ApiError> handleBusinessRule(BusinessRuleException ex, HttpServletRequest req) {
         return build(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), req, null);
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiError> handleTooMany(TooManyRequestsException ex, HttpServletRequest req) {
+        ResponseEntity<ApiError> base = build(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), req, null);
+        return ResponseEntity.status(base.getStatusCode())
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+                .body(base.getBody());
     }
 
     /** Two requests tried to change the same copy at once (e.g. both borrowing the last copy). */

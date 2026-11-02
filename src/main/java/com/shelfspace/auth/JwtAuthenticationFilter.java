@@ -1,5 +1,6 @@
 package com.shelfspace.auth;
 
+import com.shelfspace.auth.token.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +15,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Reads "Authorization: Bearer <token>" and, if the access token is valid, marks the request as authenticated.
+ * Reads "Authorization: Bearer <token>" and, if the access token is valid and not revoked, marks the request as authenticated.
+ * Revocation costs one primary-key lookup per request (the user's token version).
  * Requests without a valid token carry on unauthenticated; Spring Security then decides whether that's allowed.
  *
  * Not a @Component on purpose: it's added only to the security chain, so it doesn't also run as a plain servlet filter.
@@ -24,9 +26,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER = "Bearer ";
 
     private final JwtService jwtService;
+    private final TokenService tokenService;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService, TokenService tokenService) {
         this.jwtService = jwtService;
+        this.tokenService = tokenService;
     }
 
     @Override
@@ -37,6 +41,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith(BEARER)) {
             try {
                 AuthUser user = jwtService.parse(header.substring(BEARER.length()), TokenType.ACCESS);
+                if (!tokenService.isCurrent(user.id(), user.tokenVersion())) {
+                    throw new InvalidTokenException("Token has been revoked");
+                }
                 var authority = new SimpleGrantedAuthority("ROLE_" + user.role().name());
                 var auth = new UsernamePasswordAuthenticationToken(user, null, List.of(authority));
                 SecurityContextHolder.getContext().setAuthentication(auth);

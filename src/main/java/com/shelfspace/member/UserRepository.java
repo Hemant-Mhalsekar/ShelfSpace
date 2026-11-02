@@ -14,6 +14,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 
+    /** Cheap check run on every authenticated request. */
+    @Query("SELECT u.tokenVersion FROM User u WHERE u.id = :id")
+    Optional<Integer> findTokenVersion(@Param("id") Long id);
+
     long countByRoleAndStatus(Role role, MemberStatus status);
 
     @Query("""

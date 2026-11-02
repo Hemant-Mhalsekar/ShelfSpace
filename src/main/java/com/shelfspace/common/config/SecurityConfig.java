@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shelfspace.auth.JwtAuthenticationFilter;
 import com.shelfspace.auth.JwtProperties;
 import com.shelfspace.auth.JwtService;
+import com.shelfspace.auth.ratelimit.AuthRateLimitFilter;
+import com.shelfspace.auth.ratelimit.RateLimitProperties;
+import com.shelfspace.auth.token.TokenService;
 import com.shelfspace.common.exception.ApiError;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,6 +25,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -30,13 +34,14 @@ import java.time.Instant;
  */
 @Configuration
 @EnableMethodSecurity
-@EnableConfigurationProperties(JwtProperties.class)
+@EnableConfigurationProperties({JwtProperties.class, RateLimitProperties.class})
 public class SecurityConfig {
 
     private static final String[] PUBLIC_PATHS = {
             "/api/v1/auth/register",
             "/api/v1/auth/login",
             "/api/v1/auth/refresh",
+            "/api/v1/auth/logout",
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/v3/api-docs/**",
@@ -51,7 +56,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService, TokenService tokenService,
+                                                   RateLimitProperties rateLimits, Clock clock) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -65,7 +71,8 @@ public class SecurityConfig {
                                 writeError(req, res, HttpStatus.UNAUTHORIZED, "Missing, invalid or expired token"))
                         .accessDeniedHandler((req, res, e) ->
                                 writeError(req, res, HttpStatus.FORBIDDEN, "You do not have permission to do this")))
-                .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtService, tokenService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new AuthRateLimitFilter(rateLimits, clock, objectMapper), JwtAuthenticationFilter.class);
         return http.build();
     }
 

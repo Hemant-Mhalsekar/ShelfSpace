@@ -38,7 +38,7 @@ class JwtServiceTest {
 
     @Test
     void refreshTokenCannotBeUsedAsAccessToken() {
-        String refresh = jwtService.generateRefreshToken(user);
+        String refresh = jwtService.generateRefreshToken(user, "jti-1", "family-1");
 
         assertThatThrownBy(() -> jwtService.parse(refresh, TokenType.ACCESS))
                 .isInstanceOf(InvalidTokenException.class);
@@ -69,6 +69,20 @@ class JwtServiceTest {
 
         assertThatThrownBy(() -> jwtService.parse(expired, TokenType.ACCESS))
                 .isInstanceOf(InvalidTokenException.class);
+    }
+
+    @Test
+    void refreshTokenCarriesIdFamilyAndVersion() {
+        user.setTokenVersion(3);
+        String refresh = jwtService.generateRefreshToken(user, "jti-1", "family-1");
+
+        var claims = jwtService.parseRefresh(refresh);
+
+        assertThat(claims.userId()).isEqualTo(42L);
+        assertThat(claims.tokenId()).isEqualTo("jti-1");
+        assertThat(claims.familyId()).isEqualTo("family-1");
+        assertThat(claims.tokenVersion()).isEqualTo(3);
+        assertThat(jwtService.parse(jwtService.generateAccessToken(user), TokenType.ACCESS).tokenVersion()).isEqualTo(3);
     }
 
     @Test

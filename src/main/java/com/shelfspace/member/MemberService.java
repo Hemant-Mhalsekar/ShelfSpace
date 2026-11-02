@@ -1,6 +1,7 @@
 package com.shelfspace.member;
 
 import com.shelfspace.audit.AuditService;
+import com.shelfspace.auth.token.TokenService;
 import com.shelfspace.circulation.LoanRepository;
 import com.shelfspace.circulation.LoanService;
 import com.shelfspace.circulation.LoanStatus;
@@ -48,6 +49,7 @@ public class MemberService {
     private final FineRepository fineRepository;
     private final LoanService loanService;
     private final ReservationService reservationService;
+    private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
     private final AuditService auditService;
     private final Clock clock;
@@ -132,6 +134,7 @@ public class MemberService {
             throw new BusinessRuleException("Member is already suspended");
         }
         user.setStatus(MemberStatus.SUSPENDED);
+        tokenService.revokeAll(user);   // signed out everywhere, right away
         auditService.record(adminId, "MEMBER_SUSPENDED", "User", id, reason.trim());
         return summary(user);
     }
