@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 type Size = 'xs' | 'sm' | 'md' | 'lg' | 'fill'
 
 const SIZES: Record<Size, string> = {
@@ -10,22 +8,21 @@ const SIZES: Record<Size, string> = {
   fill: 'w-full',
 }
 
-/** Cover colours for books without a real cover (chosen from the title, so a book always looks the same). */
+/** Cover colours, chosen from the title. */
 const PLAIN = ['#1c3d5a', '#7a2e2e', '#2f5d50', '#5b3f8c', '#8a5a1f', '#2b2b2e', '#a33d5c', '#36577a']
 
 /**
- * Real cover from Open Library (looked up by ISBN). If there isn't one, draws a plain coloured cover
- * with the title, the way Apple Books shows books without artwork.
+ * A plain coloured cover with the title and author, the way Apple Books shows books without artwork.
+ * The colour comes from the title, so a book always looks the same.
  */
-export function BookCover({ title, author, isbn, size = 'md', className = '' }: {
+export function BookCover({ title, author, size = 'md', className = '' }: {
   title: string
   author?: string
+  /** Accepted for compatibility with existing callers; covers are no longer looked up by ISBN. */
   isbn?: string
   size?: Size
   className?: string
 }) {
-  // The plain cover is always drawn; a real cover fades in on top once it has loaded.
-  const [state, setState] = useState<'loading' | 'loaded' | 'failed'>(isbn ? 'loading' : 'failed')
   const color = PLAIN[[...title].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 9973, 7) % PLAIN.length]
   const tiny = size === 'xs' || size === 'sm'
 
@@ -40,17 +37,6 @@ export function BookCover({ title, author, isbn, size = 'md', className = '' }: 
       </span>
       {author && !tiny && (
         <span aria-hidden className={`text-white/75 ${size === 'md' ? 'p-2.5 pt-0 text-[9px]' : 'p-4 pt-0 text-xs'}`}>{author}</span>
-      )}
-
-      {isbn && state !== 'failed' && (
-        <img
-          src={`https://covers.openlibrary.org/b/isbn/${isbn}-${size === 'lg' || size === 'fill' ? 'L' : 'M'}.jpg?default=false`}
-          alt=""
-          loading="lazy"
-          onLoad={() => setState('loaded')}
-          onError={() => setState('failed')}
-          className={`absolute inset-0 size-full object-cover transition-opacity duration-300 ${state === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
-        />
       )}
       <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[3px] bg-gradient-to-r from-black/25 to-transparent" />
     </div>
