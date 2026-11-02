@@ -41,6 +41,11 @@ export function DashboardPage() {
       <Shelf title="Checked Out" empty={<>Nothing checked out. <Link to="/books" className="font-semibold text-accent-600">Find something to read ›</Link></>}>
         {currentLoans.map((l) => <LoanTile key={l.id} loan={l} />)}
       </Shelf>
+      {currentLoans.some((l) => l.status === 'ISSUED' || l.status === 'OVERDUE') && (
+        <p className="-mt-2 px-1 text-[13px] text-ink-500">
+          To return a book, bring it to the library desk. It's checked in there, and the loan closes on your account.
+        </p>
+      )}
 
       {reservations.length > 0 && (
         <Shelf title="Waitlist">
