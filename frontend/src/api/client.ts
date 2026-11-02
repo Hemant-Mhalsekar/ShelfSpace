@@ -86,9 +86,11 @@ let refreshInFlight: Promise<boolean> | null = null
 
 function refreshTokens(): Promise<boolean> {
   refreshInFlight ??= (async () => {
+    const used = tokens.refresh
     try {
-      const res = await send('/auth/refresh', { method: 'POST', body: { refreshToken: tokens.refresh } }, null)
-      if (!res.ok) return false
+      const res = await send('/auth/refresh', { method: 'POST', body: { refreshToken: used } }, null)
+      // Refresh tokens work once. If another tab refreshed first, it already saved a newer pair.
+      if (!res.ok) return tokens.refresh !== null && tokens.refresh !== used
       tokens.save((await res.json()) as AuthResponse)
       return true
     } catch {

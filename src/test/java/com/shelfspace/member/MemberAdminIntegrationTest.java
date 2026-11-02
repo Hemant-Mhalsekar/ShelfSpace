@@ -82,14 +82,14 @@ class MemberAdminIntegrationTest extends IntegrationTest {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.message", containsString("suspended")));
 
-        // A token issued before the suspension can't be used to borrow either
+        // Suspension signs them out: a token issued before it no longer works
         mockMvc.perform(borrowRequest(member, bookId))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.message", containsString("suspended")));
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(post("/api/v1/members/{id}/activate", member.id()).header("Authorization", adminToken()))
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
-        mockMvc.perform(borrowRequest(member, bookId)).andExpect(status().isCreated());
+        TestMember again = new TestMember(member.id(), member.email(), bearer(member.email(), "Secret123"));
+        mockMvc.perform(borrowRequest(again, bookId)).andExpect(status().isCreated());
     }
 
     @Test

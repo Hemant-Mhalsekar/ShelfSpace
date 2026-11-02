@@ -31,6 +31,10 @@ app:
     secret: ${JWT_SECRET:change-me-to-a-long-random-string-of-at-least-32-bytes}
     access-token-minutes: 15
     refresh-token-days: 7
+  rate-limit:
+    login-max-failures: 5          # wrong passwords per email + IP ...
+    login-lock-minutes: 15         # ... before a 15-minute lock
+    auth-requests-per-minute: ${AUTH_RATE_LIMIT:30}   # register/login/refresh per IP; 0 = off
   scheduling:
     enabled: ${SCHEDULING_ENABLED:true}
   jobs:
@@ -38,6 +42,7 @@ app:
     overdue-cron: "0 5 0 * * *"        # 00:05 every night
     due-reminder-cron: "0 0 9 * * *"   # 09:00 every morning
     hold-expiry-cron: "0 */15 * * * *" # every 15 minutes
+    token-cleanup-cron: "0 30 3 * * *" # 03:30 every night
   seed:
     # Demo accounts for local testing. Set SEED_ENABLED=false in production.
     enabled: ${SEED_ENABLED:true}

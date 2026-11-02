@@ -20,6 +20,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(() => {
+    // Tell the server so this refresh token stops working; don't wait for it
+    const refresh = tokens.refresh
+    if (refresh) authApi.logout(refresh).catch(() => undefined)
     tokens.clear()
     setUser(null)
     queryClient.clear()
@@ -45,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register: async (data) => start(await authApi.register(data)),
     logout,
     setUser,
+    adoptSession: (auth: AuthResponse) => { tokens.save(auth); setUser(auth.user) },
   }), [user, loading, start, logout])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -45,4 +45,8 @@ public class User extends BaseEntity {
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 20)
     private MemberStatus status = MemberStatus.ACTIVE;
+
+    /** Part of every token. Incrementing it signs the user out everywhere. */
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion = 0;
 }

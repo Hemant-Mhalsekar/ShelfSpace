@@ -20,13 +20,16 @@ export const authApi = {
   register: (body: { name: string; email: string; phone?: string; password: string }) =>
     api<AuthResponse>('/auth/register', { method: 'POST', body }),
   me: () => api<User>('/auth/me'),
+  logout: (refreshToken: string) => api<void>('/auth/logout', { method: 'POST', body: { refreshToken } }),
 }
 
 export const accountApi = {
   updateProfile: (body: { name: string; phone: string | null }) =>
     api<User>('/account/profile', { method: 'PUT', body }),
+  /** Signs out other devices; returns fresh tokens for this one. */
   changePassword: (currentPassword: string, newPassword: string) =>
-    api<void>('/account/password', { method: 'POST', body: { currentPassword, newPassword } }),
+    api<AuthResponse>('/account/password', { method: 'POST', body: { currentPassword, newPassword } }),
+  signOutEverywhere: () => api<AuthResponse>('/account/sign-out-everywhere', { method: 'POST' }),
 }
 
 export interface BookSearch {

@@ -70,7 +70,7 @@ class AccountIntegrationTest extends IntegrationTest {
     void afterChangingPasswordOnlyTheNewOneWorks() throws Exception {
         var m = newMember();
         mockMvc.perform(changePassword(m.token(), "Secret123", "Brand1New"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         login(m.email(), "Secret123", 401);
         login(m.email(), "Brand1New", 200);
