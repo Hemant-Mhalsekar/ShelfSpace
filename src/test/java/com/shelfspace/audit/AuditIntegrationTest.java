@@ -59,7 +59,7 @@ class AuditIntegrationTest extends IntegrationTest {
         mockMvc.perform(post("/api/v1/account/password")
                         .header("Authorization", m.token())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"currentPassword\": \"Secret123\", \"newPassword\": \"Brand1New\"}"))
+                        .content("{\"currentPassword\": \"Shelf2Read\", \"newPassword\": \"Brand1New\"}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/v1/audit").param("actorId", String.valueOf(m.id())).header("Authorization", adminToken()))

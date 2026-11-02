@@ -58,7 +58,14 @@ describe('AccountPage', () => {
 
     await user.type(pw.getByLabelText('Current password'), 'Secret123')
     await user.type(pw.getByLabelText(/^New password/), 'short')
-    expect(pw.getByText('At least 8 characters, with a letter and a number')).toBeInTheDocument()
+    await user.tab()
+    expect(pw.getByText('Must be 8-72 characters')).toBeInTheDocument()
+    expect(pw.getByText('Too weak')).toBeInTheDocument()
+
+    // A password with the member's name in it is refused before it's sent
+    await user.clear(pw.getByLabelText(/^New password/))
+    await user.type(pw.getByLabelText(/^New password/), 'Member2026x')
+    expect(pw.getByText('Must not contain your name or email')).toBeInTheDocument()
 
     await user.clear(pw.getByLabelText(/^New password/))
     await user.type(pw.getByLabelText(/^New password/), 'Brand1New')

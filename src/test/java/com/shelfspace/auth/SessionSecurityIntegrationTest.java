@@ -29,7 +29,7 @@ class SessionSecurityIntegrationTest extends IntegrationTest {
 
     /** Logs in and returns the full token pair. */
     private JsonNode signIn(String email) throws Exception {
-        return json.readTree(login(email, "Secret123", "10.0.0.1")
+        return json.readTree(login(email, "Shelf2Read", "10.0.0.1")
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
     }
 
@@ -107,7 +107,7 @@ class SessionSecurityIntegrationTest extends IntegrationTest {
         JsonNode fresh = body(mockMvc.perform(post("/api/v1/account/password")
                         .header("Authorization", "Bearer " + thisDevice.get("accessToken").asText())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"currentPassword\": \"Secret123\", \"newPassword\": \"Brand1New\"}"))
+                        .content("{\"currentPassword\": \"Shelf2Read\", \"newPassword\": \"Brand1New\"}"))
                 .andExpect(status().isOk()));
 
         me(otherDevice.get("accessToken").asText()).andExpect(status().isUnauthorized());
@@ -152,13 +152,13 @@ class SessionSecurityIntegrationTest extends IntegrationTest {
         }
 
         // Locked, even with the right password
-        login(m.email(), "Secret123", "10.1.1.1")
+        login(m.email(), "Shelf2Read", "10.1.1.1")
                 .andExpect(status().isTooManyRequests())
                 .andExpect(header().exists("Retry-After"))
                 .andExpect(jsonPath("$.message", containsString("Try again in 15 minutes")));
 
         // The real owner elsewhere isn't locked out
-        login(m.email(), "Secret123", "10.2.2.2").andExpect(status().isOk());
+        login(m.email(), "Shelf2Read", "10.2.2.2").andExpect(status().isOk());
     }
 
     @Test
@@ -167,11 +167,11 @@ class SessionSecurityIntegrationTest extends IntegrationTest {
         for (int i = 0; i < 4; i++) {
             login(m.email(), "Wrong1234", "10.3.3.3").andExpect(status().isUnauthorized());
         }
-        login(m.email(), "Secret123", "10.3.3.3").andExpect(status().isOk());
+        login(m.email(), "Shelf2Read", "10.3.3.3").andExpect(status().isOk());
         for (int i = 0; i < 4; i++) {
             login(m.email(), "Wrong1234", "10.3.3.3").andExpect(status().isUnauthorized());
         }
-        login(m.email(), "Secret123", "10.3.3.3").andExpect(status().isOk());
+        login(m.email(), "Shelf2Read", "10.3.3.3").andExpect(status().isOk());
     }
 
     @Test

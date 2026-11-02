@@ -69,10 +69,10 @@ class AccountIntegrationTest extends IntegrationTest {
     @Test
     void afterChangingPasswordOnlyTheNewOneWorks() throws Exception {
         var m = newMember();
-        mockMvc.perform(changePassword(m.token(), "Secret123", "Brand1New"))
+        mockMvc.perform(changePassword(m.token(), "Shelf2Read", "Brand1New"))
                 .andExpect(status().isOk());
 
-        login(m.email(), "Secret123", 401);
+        login(m.email(), "Shelf2Read", 401);
         login(m.email(), "Brand1New", 200);
     }
 
@@ -82,20 +82,20 @@ class AccountIntegrationTest extends IntegrationTest {
         mockMvc.perform(changePassword(m.token(), "Wrong1234", "Brand1New"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.message").value("Your current password is incorrect"));
-        login(m.email(), "Secret123", 200);
+        login(m.email(), "Shelf2Read", 200);
     }
 
     @Test
     void reusingTheSamePasswordIsRejected() throws Exception {
         var m = newMember();
-        mockMvc.perform(changePassword(m.token(), "Secret123", "Secret123"))
+        mockMvc.perform(changePassword(m.token(), "Shelf2Read", "Shelf2Read"))
                 .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
     void weakNewPasswordFailsValidation() throws Exception {
         var m = newMember();
-        mockMvc.perform(changePassword(m.token(), "Secret123", "short"))
+        mockMvc.perform(changePassword(m.token(), "Shelf2Read", "short"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -110,7 +110,7 @@ class AccountIntegrationTest extends IntegrationTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        login(m.email(), "Secret123", 401);
+        login(m.email(), "Shelf2Read", 401);
         login(m.email(), "Desk2024x", 200);
     }
 

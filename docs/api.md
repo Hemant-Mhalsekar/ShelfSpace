@@ -54,7 +54,20 @@ Send the access token on every request as `Authorization: Bearer <token>`. In Sw
 | `POST /api/v1/account/password` | Bearer token | Change your password; needs the current one, and the new one must differ. Signs out other devices and returns new tokens for this one |
 | `POST /api/v1/account/sign-out-everywhere` | Bearer token | Signs out every other device; returns new tokens for this one |
 
-Passwords are 8 to 72 characters with at least one letter and one digit. Changes are written to the audit log.
+Changes are written to the audit log.
+
+### Field rules
+
+The server checks every field; the web app shows the same rules while typing, so a form it accepts won't be refused here. Errors come back as `400` with `fieldErrors`.
+
+| Field | Rule |
+|---|---|
+| Password (sign-up, add member, change, reset) | 8-72 characters, an uppercase and a lowercase letter, a number, no space at the start or end. Common passwords are refused, even with numbers or symbols around them (`Password123!`, `Welcome1`); the list is in `src/main/resources/validation/common-passwords.txt`. It also can't contain the person's name or the part of their email before the @ |
+| Name | 2-100 characters after trimming, starting with a letter; letters in any language, spaces, apostrophes, hyphens and dots (`Zoë O'Brien-Nair`) |
+| Email | Needs a domain with a dot and a 2+ letter ending (`name@gmail` is refused). Sign-in only needs an @, so older accounts still work |
+| Phone | Optional; 10-15 digits, optionally starting with + |
+| Book | Title required; author and category must contain a letter; ISBN-10 or ISBN-13 with a correct check digit; year from 1450 to next year; replacement cost 0-1,000,000 with at most 2 decimals |
+| Reasons and notes | Required where asked (suspend, waive), up to 255 characters |
 
 ## Session security
 

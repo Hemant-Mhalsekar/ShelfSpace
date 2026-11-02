@@ -28,7 +28,7 @@ The code is a **modular monolith**: one deployable app, with packages split by f
 - **Fine ledger.** Fines are capped per tier and can be paid or waived (waiving needs a reason). Every admin action is audited, and librarians can browse, filter and export the log.
 - **Sessions you can end.** Rotating, single-use refresh tokens with reuse detection. Changing a password, a librarian reset or a suspension signs the person out everywhere at once. Sign-in is rate limited per email and IP.
 - **Dashboards.** Admins see inventory, circulation, fines, the top 5 books and a 6-month trend. Members see due dates, fines, reservations and alerts.
-- **Tested on both sides.** 134 backend tests (including Testcontainers integration tests against real MySQL) and 32 frontend component tests run in GitHub Actions on every push.
+- **Tested on both sides.** 156 backend tests (including Testcontainers integration tests against real MySQL) and 47 frontend component tests run in GitHub Actions on every push.
 
 ## Design decisions
 

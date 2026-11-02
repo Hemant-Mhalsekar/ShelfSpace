@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/useAuth'
 import { Alert, Button, Field } from '../components/ui'
 import { errorMessage, inputClass } from '../lib/ui-helpers'
+import { useFieldChecks } from '../lib/useFieldChecks'
 import { AuthShell } from './AuthShell'
 
 const DEMO = {
@@ -20,6 +21,8 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // Only a light check here: accounts made under older, looser rules must still be able to sign in
+  const checks = useFieldChecks({ email: email.includes('@') ? null : 'Enter your email address', password: password ? null : 'Enter your password' })
 
   if (user) return <Navigate to={from} replace />
 
@@ -38,18 +41,19 @@ export function LoginPage() {
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
-    void signIn(email, password)
+    if (!checks.ready()) return
+    void signIn(email.trim(), password)
   }
 
   return (
     <AuthShell title="Sign in to ShelfSpace" subtitle={<>New here? <Link to="/register" className="font-semibold text-accent-600">Create an account</Link></>}>
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} noValidate className="space-y-4">
         {error && <Alert>{error}</Alert>}
-        <Field label="Email">
-          <input className={inputClass} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Field label="Email" error={checks.error('email')}>
+          <input className={inputClass} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} {...checks.field('email')} />
         </Field>
-        <Field label="Password">
-          <input className={inputClass} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Field label="Password" error={checks.error('password')}>
+          <input className={inputClass} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} {...checks.field('password')} />
         </Field>
         <Button type="submit" loading={busy} className="w-full py-2.5 text-[15px]">Sign In</Button>
       </form>

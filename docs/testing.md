@@ -20,7 +20,7 @@ Integration tests share one MySQL container for the whole run (the singleton con
 cd frontend && npm test
 ```
 
-32 component tests with Vitest and React Testing Library, run in jsdom against a fake API (MSW), so no backend is needed. Any request a test didn't mock fails the test.
+47 component tests with Vitest and React Testing Library, run in jsdom against a fake API (MSW), so no backend is needed. Any request a test didn't mock fails the test.
 
 | Area | Examples |
 |---|---|
@@ -29,5 +29,6 @@ cd frontend && npm test
 | Account | Membership limits in words, Save only when changed, password rules and mismatch, wrong current password, new tokens kept after a change, sign out other devices |
 | Activity | Entries read as sentences with links, own-account wording, details formatting, filter by person and category |
 | Member profile | Check in, with on-time and late-fine messages |
+| Field rules | Every password, name, email, phone, ISBN, year and cost rule; sign-up form shows problems after leaving a field, fixes them live, and doesn't send until everything passes |
 
 Both suites run in GitHub Actions on every push and pull request.

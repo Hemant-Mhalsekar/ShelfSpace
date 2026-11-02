@@ -5,7 +5,9 @@ import com.shelfspace.account.dto.UpdateProfileRequest;
 import com.shelfspace.audit.AuditService;
 import com.shelfspace.auth.dto.AuthResponse;
 import com.shelfspace.auth.token.TokenService;
+import com.shelfspace.common.validation.PasswordPolicy;
 import com.shelfspace.common.exception.BusinessRuleException;
+import com.shelfspace.common.exception.InvalidRequestException;
 import com.shelfspace.common.exception.ResourceNotFoundException;
 import com.shelfspace.member.User;
 import com.shelfspace.member.UserRepository;
@@ -43,6 +45,7 @@ public class AccountService {
         if (passwordEncoder.matches(req.newPassword(), user.getPasswordHash())) {
             throw new BusinessRuleException("Choose a password different from your current one");
         }
+        refusePersonal(req.newPassword(), user);
         user.setPasswordHash(passwordEncoder.encode(req.newPassword()));
         tokenService.revokeAll(user);
         auditService.record(userId, "PASSWORD_CHANGED", "User", userId, null);
@@ -61,9 +64,17 @@ public class AccountService {
     @Transactional
     public void resetPassword(Long memberId, String newPassword, Long adminId) {
         User user = find(memberId);
+        refusePersonal(newPassword, user);
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         tokenService.revokeAll(user);
         auditService.record(adminId, "PASSWORD_RESET", "User", memberId, "by librarian");
+    }
+
+    /** The request DTO can't see the user's name and email, so this rule is checked here. */
+    private static void refusePersonal(String password, User user) {
+        PasswordPolicy.personalProblem(password, user.getName(), user.getEmail()).ifPresent(problem -> {
+            throw new InvalidRequestException("The new password " + problem);
+        });
     }
 
     private User find(Long id) {
