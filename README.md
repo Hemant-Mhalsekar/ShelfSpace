@@ -12,6 +12,32 @@ A full-stack library management system: a Spring Boot REST API and a React web a
 
 **Live demo: https://shelf-space-pi.vercel.app**. Log in with the *Member* or *Librarian* demo buttons. The API runs on a free host, so if nobody has used it for a while, the first load can take a couple of minutes.
 
+![Browsing the catalog as a member](docs/screenshots/browse.png)
+
+## Screenshots
+
+| Members | Librarians |
+|---|---|
+| **Book page** with Borrow, Want to Read and "Readers also borrowed"<br>![Book page](docs/screenshots/book.png) | **Dashboard** with live numbers, a 6-month chart and the most borrowed books<br>![Librarian dashboard](docs/screenshots/librarian-dashboard.png) |
+| **My Books**: due dates, renewals, the waiting list and suggestions<br>![My Books](docs/screenshots/my-books.png) | **Loan desk**: approve or reject requests, check books in<br>![Loan desk](docs/screenshots/loan-desk.png) |
+| **Account**: profile, password, sign out other devices, membership limits<br>![Account page](docs/screenshots/account.png) | **Activity**: the audit log in plain sentences, filterable, with CSV export<br>![Activity log](docs/screenshots/activity.png) |
+
+<p align="center">
+  <img src="docs/screenshots/mobile-my-books.png" alt="My Books on a phone" width="260">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/mobile-browse.png" alt="Browse on a phone" width="260">
+  <br><em>On phones, members get an app-style tab bar.</em>
+</p>
+
+<details>
+<summary>Sign-in page</summary>
+
+![Sign in](docs/screenshots/sign-in.png)
+
+</details>
+
+The screenshots use sample data (books, members and loans) to show every screen filled in.
+
 ## Highlights
 
 - **No double booking under load.** Optimistic locking (`@Version`) on each physical copy. A test fires 10 simultaneous requests at the last copy and asserts exactly one wins.
@@ -19,9 +45,10 @@ A full-stack library management system: a Spring Boot REST API and a React web a
 - **Rules as data.** Book limits, loan length, fine rates, renewals, reservation limits and hold time live in a `borrowing_policies` table per membership tier, so changing a rule needs no redeploy.
 - **Fair waiting list.** A FIFO reservation queue with 48-hour holds. Every freed copy goes through one method, so nobody can jump the queue.
 - **Background jobs.** Nightly overdue marking, de-duplicated due-tomorrow reminders, and hold expiry every 15 minutes.
-- **Fine ledger.** Fines are capped per tier and can be paid or waived (waiving needs a reason). Every admin action is audited.
+- **Fine ledger.** Fines are capped per tier and can be paid or waived (waiving needs a reason). Every admin action is audited, and librarians can browse, filter and export the log.
+- **Sessions you can end.** Rotating, single-use refresh tokens with reuse detection. Changing a password, a librarian reset or a suspension signs the person out everywhere at once. Sign-in is rate limited per email and IP.
 - **Dashboards.** Admins see inventory, circulation, fines, the top 5 books and a 6-month trend. Members see due dates, fines, reservations and alerts.
-- **Tested against real MySQL.** 88 tests, including Testcontainers integration tests, run in GitHub Actions on every push.
+- **Tested on both sides.** 134 backend tests (including Testcontainers integration tests against real MySQL) and 32 frontend component tests run in GitHub Actions on every push.
 
 ## Architecture
 
