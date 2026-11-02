@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login: async (email, password) => start(await authApi.login(email, password)),
     register: async (data) => start(await authApi.register(data)),
     logout,
+    setUser,
   }), [user, loading, start, logout])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
