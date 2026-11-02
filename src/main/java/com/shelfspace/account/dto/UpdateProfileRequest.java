@@ -1,11 +1,12 @@
 package com.shelfspace.account.dto;
 
+import com.shelfspace.common.validation.PersonName;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record UpdateProfileRequest(
-        @NotBlank @Size(max = 100) String name,
+        @NotBlank @Size(max = 100) @PersonName String name,
         @Pattern(regexp = "^$|^\\+?[0-9]{10,15}$", message = "must be 10-15 digits, optionally starting with +")
         String phone
 ) {

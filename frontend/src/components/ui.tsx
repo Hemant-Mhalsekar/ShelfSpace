@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { Children, cloneElement, isValidElement, useId, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { Link } from 'react-router'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
@@ -114,15 +114,29 @@ export function StatusBadge({ status }: { status: string }) {
   return <Badge color={statusColor[status] ?? 'gray'}>{label}</Badge>
 }
 
+/**
+ * A labelled form field. The first child (the input or select) gets the label, and the error is linked to it
+ * with aria-describedby, so screen readers say "Email" as the name and the error as extra detail.
+ * Anything after the input (hints, the password checklist) stays outside the label.
+ */
 export function Field({
   label, error, children,
 }: { label: string; error?: string; children: ReactNode }) {
+  const id = useId()
+  const errorId = `${id}-error`
+  const [control, ...rest] = Children.toArray(children)
+  const input = isValidElement<{ id?: string; 'aria-describedby'?: string }>(control)
+    ? cloneElement(control, { id: control.props.id ?? id, 'aria-describedby': error ? errorId : control.props['aria-describedby'] })
+    : control
   return (
-    <label className="block">
-      <span className="mb-1.5 block text-[13px] font-medium text-ink-600">{label}</span>
-      {children}
-      {error && <span className="mt-1 block text-xs text-danger-600">{error}</span>}
-    </label>
+    <div>
+      <label htmlFor={isValidElement<{ id?: string }>(control) ? control.props.id ?? id : undefined} className="mb-1.5 block text-[13px] font-medium text-ink-600">
+        {label}
+      </label>
+      {input}
+      {rest}
+      {error && <span id={errorId} className="mt-1 block text-xs text-danger-600">{error}</span>}
+    </div>
   )
 }
 

@@ -6,11 +6,14 @@ import { adminLoansApi, membersApi } from '../../api/endpoints'
 import type { Loan, MemberSummary, MembershipTier } from '../../api/types'
 import { useAuth } from '../../auth/useAuth'
 import { Modal } from '../../components/Modal'
+import { PasswordChecklist } from '../../components/PasswordChecklist'
 import { useToast } from '../../components/toast/useToast'
 import { Alert, Badge, Button, Card, EmptyState, Field, PageLoader, StatusBadge } from '../../components/ui'
 import { formatDate, formatMoney } from '../../lib/format'
 import { errorMessage, inputClass } from '../../lib/ui-helpers'
 import { TIERS, tierName } from '../../lib/tiers'
+import { useFieldChecks } from '../../lib/useFieldChecks'
+import { nameProblem, passwordProblem, phoneProblem } from '../../lib/validation'
 
 export function MemberPage() {
   const id = Number(useParams().id)
@@ -132,32 +135,31 @@ function EditMember({ member }: { member: MemberSummary }) {
   const toast = useToast()
   const refresh = useRefreshMember(member.id)
   const [form, setForm] = useState({ name: member.name, phone: member.phone ?? '', membershipTier: member.membershipTier })
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const checks = useFieldChecks({ name: nameProblem(form.name), phone: phoneProblem(form.phone) })
   const save = useMutation({
-    mutationFn: () => membersApi.update(member.id, { name: form.name, phone: form.phone || null, membershipTier: form.membershipTier }),
+    mutationFn: () => membersApi.update(member.id, { name: form.name.trim(), phone: form.phone.trim() || null, membershipTier: form.membershipTier }),
     onSuccess: (m) => {
       toast.show(m.membershipTier !== member.membershipTier ? `Saved. ${m.name} is now ${tierName(m.membershipTier)} tier.` : 'Saved')
       refresh()
     },
     onError: (e) => {
-      if (e instanceof ApiError) setFieldErrors(e.fieldErrors)
+      if (e instanceof ApiError) checks.setServerErrors(e.fieldErrors)
       toast.show(errorMessage(e), 'error')
     },
   })
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    setFieldErrors({})
-    save.mutate()
+    if (checks.ready()) save.mutate()
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <Field label="Name" error={fieldErrors.name}>
-        <input className={inputClass} required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+    <form onSubmit={submit} noValidate className="space-y-4">
+      <Field label="Name" error={checks.error('name')}>
+        <input className={inputClass} required maxLength={100} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} {...checks.field('name')} />
       </Field>
-      <Field label="Phone" error={fieldErrors.phone}>
-        <input className={inputClass} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+      <Field label="Phone (optional)" error={checks.error('phone')}>
+        <input className={inputClass} type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} {...checks.field('phone')} />
       </Field>
       <Field label="Membership tier">
         <select className={inputClass} value={form.membershipTier} onChange={(e) => setForm({ ...form, membershipTier: e.target.value as MembershipTier })}>
@@ -205,12 +207,12 @@ function ActivateButton({ memberId }: { memberId: number }) {
   return <Button loading={activate.isPending} onClick={() => activate.mutate()}>Reactivate</Button>
 }
 
-const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,72}$/
-
 function ResetPasswordDialog({ member, open, onClose }: { member: MemberSummary; open: boolean; onClose: () => void }) {
   const toast = useToast()
   const [password, setPassword] = useState('')
-  const valid = PASSWORD_RULE.test(password)
+  const person = { name: member.name, email: member.email }
+  const problem = passwordProblem(password, person)
+  const valid = !problem
   const close = () => { setPassword(''); reset.reset(); onClose() }
   const reset = useMutation({
     mutationFn: () => membersApi.resetPassword(member.id, password),
@@ -224,9 +226,10 @@ function ResetPasswordDialog({ member, open, onClose }: { member: MemberSummary;
       </p>
       {reset.error && <div className="mb-3"><Alert>{errorMessage(reset.error)}</Alert></div>}
       <form onSubmit={(e) => { e.preventDefault(); if (valid) reset.mutate() }}>
-        <Field label="New password" error={password && !valid ? 'At least 8 characters, with a letter and a number' : undefined}>
-          <input className={inputClass} type="text" value={password} autoComplete="off" spellCheck={false}
+        <Field label="New password" error={password && problem ? problem : undefined}>
+          <input className={inputClass} type="text" maxLength={72} value={password} autoComplete="off" spellCheck={false}
             onChange={(e) => setPassword(e.target.value)} />
+          <PasswordChecklist password={password} person={person} />
         </Field>
         <p className="mt-2 text-xs text-ink-500">The change is recorded in the audit log.</p>
         <div className="mt-5 flex justify-end gap-2">

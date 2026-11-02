@@ -5,11 +5,14 @@ import { ApiError } from '../../api/client'
 import { membersApi, type MemberSearch } from '../../api/endpoints'
 import type { MembershipTier, Role } from '../../api/types'
 import { Modal } from '../../components/Modal'
+import { PasswordChecklist } from '../../components/PasswordChecklist'
 import { useToast } from '../../components/toast/useToast'
 import { Alert, Badge, Button, Card, EmptyState, Field, PageHeader, PageLoader, Pagination, StatusBadge } from '../../components/ui'
 import { formatMoney } from '../../lib/format'
 import { TIERS, tierName } from '../../lib/tiers'
 import { errorMessage, inputClass } from '../../lib/ui-helpers'
+import { useFieldChecks } from '../../lib/useFieldChecks'
+import { emailProblem, nameProblem, passwordProblem, phoneProblem } from '../../lib/validation'
 
 export function MembersPage() {
   const [filters, setFilters] = useState<MemberSearch>({ page: 0 })
@@ -97,25 +100,31 @@ function AddMemberDialog({ open, onClose }: { open: boolean; onClose: () => void
   const empty = { name: '', email: '', phone: '', password: '', membershipTier: 'STUDENT' as MembershipTier, role: 'MEMBER' as Role }
   const [form, setForm] = useState(empty)
   const [error, setError] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const checks = useFieldChecks({
+    name: nameProblem(form.name),
+    email: emailProblem(form.email),
+    phone: phoneProblem(form.phone),
+    password: passwordProblem(form.password, form),
+  })
   const [busy, setBusy] = useState(false)
 
   const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    setBusy(true)
     setError(null)
-    setFieldErrors({})
+    if (!checks.ready()) return
+    setBusy(true)
     try {
-      const m = await membersApi.create({ ...form, phone: form.phone || undefined })
+      const m = await membersApi.create({ ...form, name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() || undefined })
       void queryClient.invalidateQueries({ queryKey: ['members'] })
       toast.show(`Created ${m.role === 'ADMIN' ? 'librarian' : 'member'} account for ${m.name}`)
       setForm(empty)
+      checks.reset()
       onClose()
       navigate(`/admin/members/${m.id}`)
     } catch (err) {
-      if (err instanceof ApiError) setFieldErrors(err.fieldErrors)
+      if (err instanceof ApiError) checks.setServerErrors(err.fieldErrors)
       setError(errorMessage(err))
     } finally {
       setBusy(false)
@@ -124,16 +133,23 @@ function AddMemberDialog({ open, onClose }: { open: boolean; onClose: () => void
 
   return (
     <Modal title="Add member" open={open} onClose={onClose} wide>
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} noValidate className="space-y-4">
         {error && <Alert>{error}</Alert>}
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Full name" error={fieldErrors.name}><input className={inputClass} required value={form.name} onChange={set('name')} /></Field>
-          <Field label="Email" error={fieldErrors.email}><input className={inputClass} type="email" required value={form.email} onChange={set('email')} /></Field>
-          <Field label="Phone" error={fieldErrors.phone}><input className={inputClass} type="tel" value={form.phone} onChange={set('phone')} /></Field>
-          <Field label="Starting password" error={fieldErrors.password}>
-            <input className={inputClass} required minLength={8} value={form.password} onChange={set('password')} autoComplete="new-password" />
+          <Field label="Full name" error={checks.error('name')}>
+            <input className={inputClass} required maxLength={100} value={form.name} onChange={set('name')} {...checks.field('name')} />
           </Field>
-          <Field label="Membership tier" error={fieldErrors.membershipTier}>
+          <Field label="Email" error={checks.error('email')}>
+            <input className={inputClass} type="email" required maxLength={150} value={form.email} onChange={set('email')} {...checks.field('email')} />
+          </Field>
+          <Field label="Phone (optional)" error={checks.error('phone')}>
+            <input className={inputClass} type="tel" value={form.phone} onChange={set('phone')} {...checks.field('phone')} />
+          </Field>
+          <Field label="Starting password" error={checks.error('password')}>
+            <input className={inputClass} required maxLength={72} value={form.password} onChange={set('password')} autoComplete="new-password" {...checks.field('password')} />
+            <PasswordChecklist password={form.password} person={form} />
+          </Field>
+          <Field label="Membership tier">
             <select className={inputClass} value={form.membershipTier} onChange={set('membershipTier')}>
               {TIERS.map((t) => <option key={t} value={t}>{tierName(t)}</option>)}
             </select>
@@ -145,7 +161,7 @@ function AddMemberDialog({ open, onClose }: { open: boolean; onClose: () => void
             </select>
           </Field>
         </div>
-        <p className="text-xs text-ink-500">Give the member their starting password. The password needs at least 8 characters, with a letter and a number.</p>
+        <p className="text-xs text-ink-500">Give the member their starting password in person; they can change it from their Account page.</p>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="submit" loading={busy}>Create account</Button>

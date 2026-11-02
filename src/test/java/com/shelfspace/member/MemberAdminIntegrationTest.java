@@ -55,7 +55,7 @@ class MemberAdminIntegrationTest extends IntegrationTest {
                 .andExpect(jsonPath("$.role").value("MEMBER"))
                 .andExpect(jsonPath("$.membershipTier").value("FACULTY"));
 
-        bearer(email, "Welcome123");   // fails the test if login doesn't work
+        bearer(email, "Reading4Life");   // fails the test if login doesn't work
 
         mockMvc.perform(post("/api/v1/members")
                         .header("Authorization", adminToken())
@@ -78,7 +78,7 @@ class MemberAdminIntegrationTest extends IntegrationTest {
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\": \"" + member.email() + "\", \"password\": \"Secret123\"}"))
+                        .content("{\"email\": \"" + member.email() + "\", \"password\": \"Shelf2Read\"}"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.message", containsString("suspended")));
 
@@ -88,7 +88,7 @@ class MemberAdminIntegrationTest extends IntegrationTest {
 
         mockMvc.perform(post("/api/v1/members/{id}/activate", member.id()).header("Authorization", adminToken()))
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
-        TestMember again = new TestMember(member.id(), member.email(), bearer(member.email(), "Secret123"));
+        TestMember again = new TestMember(member.id(), member.email(), bearer(member.email(), "Shelf2Read"));
         mockMvc.perform(borrowRequest(again, bookId)).andExpect(status().isCreated());
     }
 
@@ -156,7 +156,7 @@ class MemberAdminIntegrationTest extends IntegrationTest {
     private static String createJson(String email, String tier) {
         return """
                 {"name": "Desk Signup", "email": "%s", "phone": "9876543210",
-                 "password": "Welcome123", "membershipTier": "%s"}
+                 "password": "Reading4Life", "membershipTier": "%s"}
                 """.formatted(email, tier);
     }
 }
