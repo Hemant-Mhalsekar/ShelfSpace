@@ -86,10 +86,10 @@ class PolicyIntegrationTest extends IntegrationTest {
                         .header("Authorization", adminToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name": "Guest", "email": "%s", "password": "Guest1234", "membershipTier": "GUEST"}
+                                {"name": "Guest", "email": "%s", "password": "Visit0rPass", "membershipTier": "GUEST"}
                                 """.formatted(email)))
                 .andExpect(status().isCreated());
-        String token = bearer(email, "Guest1234");
+        String token = bearer(email, "Visit0rPass");
         long id = json.readTree(mockMvc.perform(get("/api/v1/auth/me").header("Authorization", token))
                 .andReturn().getResponse().getContentAsString()).get("id").asLong();
         return new TestMember(id, email, token);

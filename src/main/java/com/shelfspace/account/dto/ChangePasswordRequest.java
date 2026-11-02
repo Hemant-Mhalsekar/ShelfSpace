@@ -1,14 +1,11 @@
 package com.shelfspace.account.dto;
 
+import com.shelfspace.common.validation.StrongPassword;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
 public record ChangePasswordRequest(
         @NotBlank String currentPassword,
-        @NotBlank
-        @Size(min = 8, max = 72, message = "must be 8-72 characters")
-        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$", message = "must contain at least one letter and one number")
+        @NotBlank @StrongPassword
         String newPassword
 ) {
 }

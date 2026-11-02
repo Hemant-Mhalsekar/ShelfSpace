@@ -4,11 +4,14 @@ import { ApiError } from '../api/client'
 import { accountApi, policiesApi } from '../api/endpoints'
 import type { Policy, User } from '../api/types'
 import { useAuth } from '../auth/useAuth'
+import { PasswordChecklist } from '../components/PasswordChecklist'
 import { useToast } from '../components/toast/useToast'
 import { Alert, Button, Card, Field, PageHeader, SectionTitle, Spinner } from '../components/ui'
 import { formatDate, formatMoney } from '../lib/format'
 import { tierName } from '../lib/tiers'
 import { errorMessage, inputClass } from '../lib/ui-helpers'
+import { useFieldChecks } from '../lib/useFieldChecks'
+import { nameProblem, passwordProblem, phoneProblem } from '../lib/validation'
 
 export function AccountPage() {
   const { user } = useAuth()
@@ -58,37 +61,36 @@ function ProfileForm({ user }: { user: User }) {
   const { setUser } = useAuth()
   const toast = useToast()
   const [form, setForm] = useState({ name: user.name, phone: user.phone ?? '' })
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const checks = useFieldChecks({ name: nameProblem(form.name), phone: phoneProblem(form.phone) })
   const dirty = form.name.trim() !== user.name || (form.phone.trim() || null) !== user.phone
 
   const save = useMutation({
-    mutationFn: () => accountApi.updateProfile({ name: form.name, phone: form.phone.trim() || null }),
+    mutationFn: () => accountApi.updateProfile({ name: form.name.trim(), phone: form.phone.trim() || null }),
     onSuccess: (u) => { setUser(u); toast.show('Profile updated') },
     onError: (e) => {
-      if (e instanceof ApiError) setFieldErrors(e.fieldErrors)
+      if (e instanceof ApiError) checks.setServerErrors(e.fieldErrors)
       toast.show(errorMessage(e), 'error')
     },
   })
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    setFieldErrors({})
-    save.mutate()
+    if (checks.ready()) save.mutate()
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <Field label="Full name" error={fieldErrors.name}>
+    <form onSubmit={submit} noValidate className="space-y-4">
+      <Field label="Full name" error={checks.error('name')}>
         <input className={inputClass} required maxLength={100} value={form.name} autoComplete="name"
-          onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          onChange={(e) => setForm({ ...form, name: e.target.value })} {...checks.field('name')} />
       </Field>
       <Field label="Email">
         <input className={`${inputClass} cursor-not-allowed text-ink-500 hover:bg-canvas-100`} value={user.email} readOnly aria-readonly />
         <span className="mt-1 block text-xs text-ink-500">Your email is your sign-in. Ask a librarian if it needs to change.</span>
       </Field>
-      <Field label="Phone (optional)" error={fieldErrors.phone}>
+      <Field label="Phone (optional)" error={checks.error('phone')}>
         <input className={inputClass} type="tel" value={form.phone} placeholder="9876543210" autoComplete="tel"
-          onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          onChange={(e) => setForm({ ...form, phone: e.target.value })} {...checks.field('phone')} />
       </Field>
       <div className="flex justify-end">
         <Button type="submit" disabled={!dirty} loading={save.isPending}>Save Changes</Button>
@@ -97,56 +99,61 @@ function ProfileForm({ user }: { user: User }) {
   )
 }
 
-const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,72}$/
-
 function PasswordForm() {
   const toast = useToast()
-  const { adoptSession } = useAuth()
+  const { user, adoptSession } = useAuth()
   const empty = { current: '', next: '', confirm: '' }
   const [form, setForm] = useState(empty)
   const [error, setError] = useState<string | null>(null)
+  const person = { name: user?.name, email: user?.email }
+
+  const checks = useFieldChecks({
+    current: form.current ? null : 'Enter your current password',
+    next: passwordProblem(form.next, person) ?? (form.next === form.current ? 'Choose a password different from your current one' : null),
+    confirm: !form.confirm ? 'Type the new password again' : form.confirm !== form.next ? "Passwords don't match" : null,
+  })
 
   const change = useMutation({
     mutationFn: () => accountApi.changePassword(form.current, form.next),
-    onSuccess: (auth) => { adoptSession(auth); setForm(empty); toast.show('Password changed. Other devices have been signed out.') },
-    onError: (e) => setError(e instanceof ApiError && Object.keys(e.fieldErrors).length
-      ? Object.values(e.fieldErrors)[0]
-      : errorMessage(e)),
+    onSuccess: (auth) => {
+      adoptSession(auth); setForm(empty); checks.reset()
+      toast.show('Password changed. Other devices have been signed out.')
+    },
+    onError: (e) => {
+      // A rule the server checks on the new password shows under that field; anything else goes in the alert
+      const newPassword = e instanceof ApiError ? e.fieldErrors.newPassword : undefined
+      if (newPassword) checks.setServerErrors({ next: newPassword })
+      else setError(errorMessage(e))
+    },
   })
 
+  // Show a mismatch as soon as the second password is typed, not only after leaving the field
   const mismatch = form.confirm.length > 0 && form.confirm !== form.next
-  const weak = form.next.length > 0 && !PASSWORD_RULE.test(form.next)
 
   function submit(e: FormEvent) {
     e.preventDefault()
     setError(null)
-    if (weak || mismatch) return
-    if (form.next === form.current) {
-      setError('Choose a password different from your current one')
-      return
-    }
-    change.mutate()
+    if (checks.ready()) change.mutate()
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={submit} noValidate className="space-y-4">
       {error && <Alert>{error}</Alert>}
-      <Field label="Current password">
+      <Field label="Current password" error={checks.error('current')}>
         <input className={inputClass} type="password" required value={form.current} autoComplete="current-password"
-          onChange={(e) => setForm({ ...form, current: e.target.value })} />
+          onChange={(e) => setForm({ ...form, current: e.target.value })} {...checks.field('current')} />
       </Field>
-      <Field label="New password" error={weak ? 'At least 8 characters, with a letter and a number' : undefined}>
-        <input className={inputClass} type="password" required value={form.next} autoComplete="new-password"
-          onChange={(e) => setForm({ ...form, next: e.target.value })} />
-        {!weak && <span className="mt-1 block text-xs text-ink-500">At least 8 characters, with a letter and a number.</span>}
+      <Field label="New password" error={checks.error('next')}>
+        <input className={inputClass} type="password" required maxLength={72} value={form.next} autoComplete="new-password"
+          onChange={(e) => setForm({ ...form, next: e.target.value })} {...checks.field('next')} />
+        <PasswordChecklist password={form.next} person={person} />
       </Field>
-      <Field label="Confirm new password" error={mismatch ? "Passwords don't match" : undefined}>
+      <Field label="Confirm new password" error={mismatch ? "Passwords don't match" : checks.error('confirm')}>
         <input className={inputClass} type="password" required value={form.confirm} autoComplete="new-password"
-          onChange={(e) => setForm({ ...form, confirm: e.target.value })} />
+          onChange={(e) => setForm({ ...form, confirm: e.target.value })} {...checks.field('confirm')} />
       </Field>
       <div className="flex justify-end">
-        <Button type="submit" loading={change.isPending}
-          disabled={!form.current || !form.next || !form.confirm || weak || mismatch}>
+        <Button type="submit" loading={change.isPending} disabled={!form.current || !form.next || !form.confirm || mismatch}>
           Change Password
         </Button>
       </div>

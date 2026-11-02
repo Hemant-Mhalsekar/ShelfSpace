@@ -80,7 +80,7 @@ public abstract class IntegrationTest {
         String body = mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name": "Test Member", "email": "%s", "password": "Secret123"}
+                                {"name": "Test Member", "email": "%s", "password": "Shelf2Read"}
                                 """.formatted(email)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();

@@ -7,7 +7,7 @@ To run from source instead, you need JDK 21, plus Docker for the database and te
 ```bash
 docker compose up -d mysql
 ./mvnw spring-boot:run      # or: mvn spring-boot:run
-./mvnw test                 # 134 tests; integration tests start their own MySQL
+./mvnw test                 # 156 tests; integration tests start their own MySQL
 ```
 
 > JDK 22+ isn't supported yet: Lombok, used by Spring Boot 3.3, fails to compile on it. With jEnv, the included `.java-version` selects 21 automatically.

@@ -37,7 +37,7 @@ class AuthFlowIntegrationTest extends IntegrationTest {
         String loginBody = mvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email": "%s", "password": "Secret123"}
+                                {"email": "%s", "password": "Shelf2Read"}
                                 """.formatted(email)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
@@ -114,7 +114,7 @@ class AuthFlowIntegrationTest extends IntegrationTest {
 
     private static String registerJson(String email) {
         return """
-                {"name": "Test User", "email": "%s", "phone": "9876543210", "password": "Secret123"}
+                {"name": "Test User", "email": "%s", "phone": "9876543210", "password": "Shelf2Read"}
                 """.formatted(email);
     }
 }
