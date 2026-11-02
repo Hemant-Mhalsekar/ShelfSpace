@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { User } from '../api/types'
+import type { AuthResponse, User } from '../api/types'
 
 export interface AuthState {
   user: User | null
@@ -10,6 +10,8 @@ export interface AuthState {
   logout: () => void
   /** Replace the signed-in user after a profile edit. */
   setUser: (user: User) => void
+  /** Swap in new tokens (after a password change or signing out other devices). */
+  adoptSession: (auth: AuthResponse) => void
 }
 
 export const AuthContext = createContext<AuthState | null>(null)

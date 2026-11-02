@@ -136,7 +136,7 @@ Set `SEED_ENABLED=false` and a strong `JWT_SECRET` in any real deployment.
 | **One release point for copies** | `ReservationService.releaseCopy` is the only way a copy becomes free, so the waiting list can't be bypassed by any of the six code paths that free a copy. |
 | **Flyway owns the schema** | Hibernate only validates (`ddl-auto: validate`). Every schema change is a reviewed, versioned SQL file. |
 | **Injected `Clock`** | All date logic (due dates, fines, holds) reads time through one bean, so time-based behaviour is testable. |
-| **Stateless JWT** | Short-lived access tokens (15 min) with refresh tokens (7 days), no server sessions, and roles checked per endpoint with `@PreAuthorize`. |
+| **JWT with revocation** | Short-lived access tokens (15 min) and rotating refresh tokens (7 days). No server sessions; a per-user token version lets a password change or suspension sign someone out everywhere at once. |
 | **Consistent errors** | Every error, including 401/403 from the security layer, uses the same JSON shape. Bad sort fields and malformed JSON return 400, never 500. |
 | **No N+1 queries** | Search pages fetch copy counts in one grouped query; loan and fine lists use entity graphs. |
 
@@ -230,7 +230,8 @@ ShelfSpace uses stateless JWT authentication.
 |---|---|---|
 | `POST /api/v1/auth/register` | Public | Create a member account |
 | `POST /api/v1/auth/login` | Public | Returns an access token (15 min) and a refresh token (7 days) |
-| `POST /api/v1/auth/refresh` | Public | Swap a refresh token for a new token pair |
+| `POST /api/v1/auth/refresh` | Public | Swap a refresh token for a new pair. Each refresh token works once |
+| `POST /api/v1/auth/logout` | Public | Ends the sign-in this refresh token belongs to |
 | `GET /api/v1/auth/me` | Bearer token | Current user's profile |
 
 Send the access token on every request as `Authorization: Bearer <token>`. In Swagger UI, click **Authorize** and paste the token.
@@ -240,9 +241,18 @@ Send the access token on every request as `Authorization: Bearer <token>`. In Sw
 | Endpoint | Auth | Description |
 |---|---|---|
 | `PUT /api/v1/account/profile` | Bearer token | Update your name and phone (email can't be changed) |
-| `POST /api/v1/account/password` | Bearer token | Change your password; needs the current one, and the new one must differ |
+| `POST /api/v1/account/password` | Bearer token | Change your password; needs the current one, and the new one must differ. Signs out other devices and returns new tokens for this one |
+| `POST /api/v1/account/sign-out-everywhere` | Bearer token | Signs out every other device; returns new tokens for this one |
 
-Passwords are 8 to 72 characters with at least one letter and one digit. Changes are written to the audit log. Tokens already issued stay valid until they expire (15 minutes).
+Passwords are 8 to 72 characters with at least one letter and one digit. Changes are written to the audit log.
+
+### Session security
+
+- **Revocable tokens.** Every token carries the user's `token_version`. Changing a password, a librarian reset, suspension or "sign out other devices" bumps it, and every older token stops working on the next request (one primary-key lookup per request).
+- **Refresh token rotation.** Each refresh token works once and is tracked in `refresh_tokens`. If a used one comes back, it was copied, so that whole sign-in is revoked. Expired rows are deleted nightly.
+- **Sign-in lockout.** 5 wrong passwords for one email from one IP lock that pair for 15 minutes (`429` with `Retry-After`). Locking per email + IP stops guessing without letting a stranger lock the real owner out.
+- **Per-IP limit.** Register, login and refresh are capped at 30 requests per IP per minute (`AUTH_RATE_LIMIT`, `0` turns it off).
+- Counters live in memory, which suits a single instance. Running several would need a shared store such as Redis.
 
 ### Catalog
 
@@ -453,7 +463,7 @@ Other hosts work the same way: the API reads everything from environment variabl
 - [x] Week 4: Docker, CI, docs
 - [x] Member management and editable borrowing rules
 - [ ] Email notifications (SMTP) behind `NotificationService`
-- [ ] Refresh-token revocation and login rate limiting
+- [x] Profile and password change, refresh-token revocation, login rate limiting
 - [x] Wishlist with back-in-stock alerts and "readers also borrowed" recommendations
 - [x] React frontend (member and librarian screens)
 

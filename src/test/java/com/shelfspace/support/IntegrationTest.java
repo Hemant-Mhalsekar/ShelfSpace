@@ -25,7 +25,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * Skipped automatically when Docker isn't running.
  */
-@SpringBootTest(properties = "app.scheduling.enabled=false")   // jobs are called directly in tests
+@SpringBootTest(properties = {
+        "app.scheduling.enabled=false",          // jobs are called directly in tests
+        "app.rate-limit.auth-requests-per-minute=0"   // every MockMvc request comes from 127.0.0.1; tested in AuthRateLimitFilterTest
+})
 @AutoConfigureMockMvc
 @Testcontainers(disabledWithoutDocker = true)
 public abstract class IntegrationTest {

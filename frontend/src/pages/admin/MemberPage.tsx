@@ -215,7 +215,7 @@ function ResetPasswordDialog({ member, open, onClose }: { member: MemberSummary;
   return (
     <Modal title={`Reset password for ${member.name}?`} open={open} onClose={close}>
       <p className="mb-4 text-sm text-ink-600">
-        Use this when a member has forgotten their password. Give them the new one in person; they can change it from their Account page.
+        Use this when a member has forgotten their password. Give them the new one in person; they can change it from their Account page. They'll be signed out on every device.
       </p>
       {reset.error && <div className="mb-3"><Alert>{errorMessage(reset.error)}</Alert></div>}
       <form onSubmit={(e) => { e.preventDefault(); if (valid) reset.mutate() }}>

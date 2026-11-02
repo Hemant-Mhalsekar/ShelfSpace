@@ -3,6 +3,8 @@ package com.shelfspace.auth;
 import com.shelfspace.auth.dto.AuthResponse;
 import com.shelfspace.auth.dto.LoginRequest;
 import com.shelfspace.auth.dto.RegisterRequest;
+import com.shelfspace.auth.ratelimit.LoginAttemptService;
+import com.shelfspace.auth.token.TokenService;
 import com.shelfspace.common.exception.BusinessRuleException;
 import com.shelfspace.common.exception.DuplicateResourceException;
 import com.shelfspace.common.exception.ResourceNotFoundException;
@@ -25,7 +27,8 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final TokenService tokenService;
+    private final LoginAttemptService loginAttempts;
 
     /** Self-registration always creates a STUDENT-tier MEMBER. Admins are created by other admins. */
     @Transactional
@@ -47,26 +50,30 @@ public class AuthService {
         return issueTokens(userRepository.save(user));
     }
 
-    @Transactional(readOnly = true)
-    public AuthResponse login(LoginRequest req) {
-        User user = userRepository.findByEmail(normalize(req.email()))
-                .orElseThrow(InvalidCredentialsException::new);
+    /** Wrong passwords are counted per email + IP; after too many, even the right one is refused for a while. */
+    @Transactional
+    public AuthResponse login(LoginRequest req, String ip) {
+        String email = normalize(req.email());
+        loginAttempts.checkAllowed(email, ip);
 
-        if (!passwordEncoder.matches(req.password(), user.getPasswordHash())) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null || !passwordEncoder.matches(req.password(), user.getPasswordHash())) {
+            loginAttempts.recordFailure(email, ip);
             throw new InvalidCredentialsException();
         }
+        loginAttempts.recordSuccess(email, ip);
         ensureActive(user);
         return issueTokens(user);
     }
 
-    /** Exchanges a valid refresh token for a new token pair. Re-reads the user so role/status changes apply. */
-    @Transactional(readOnly = true)
+    /** Swaps a refresh token for a new pair (the old one stops working). */
     public AuthResponse refresh(String refreshToken) {
-        AuthUser claims = jwtService.parse(refreshToken, TokenType.REFRESH);
-        User user = userRepository.findById(claims.id())
-                .orElseThrow(() -> new InvalidTokenException("Invalid or expired token"));
-        ensureActive(user);
-        return issueTokens(user);
+        return tokenService.rotate(refreshToken);
+    }
+
+    /** Ends the sign-in this refresh token belongs to. */
+    public void logout(String refreshToken) {
+        tokenService.revoke(refreshToken);
     }
 
     @Transactional(readOnly = true)
@@ -77,11 +84,7 @@ public class AuthService {
     }
 
     private AuthResponse issueTokens(User user) {
-        return AuthResponse.bearer(
-                jwtService.generateAccessToken(user),
-                jwtService.generateRefreshToken(user),
-                jwtService.accessTokenTtlSeconds(),
-                UserResponse.from(user));
+        return tokenService.issue(user);
     }
 
     private static void ensureActive(User user) {
