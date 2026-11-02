@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react'
 import { ServerWakeBanner } from '../components/ServerWakeBanner'
 
-/** Fanned stack of covers above the form; real covers from Open Library for a few well-known books. */
+/** Fanned stack of plain, untitled covers above the form (decoration only). */
 const FAN = [
-  { isbn: '9780132350884', rotate: '-12deg', x: '-88px', color: '#1c3d5a' },
-  { isbn: '9780735211292', rotate: '-4deg', x: '-30px', color: '#7a2e2e' },
-  { isbn: '9781449373320', rotate: '4deg', x: '30px', color: '#2f5d50' },
-  { isbn: '9780134685991', rotate: '12deg', x: '88px', color: '#5b3f8c' },
+  { color: '#1c3d5a', rotate: '-12deg', x: '-88px' },
+  { color: '#7a2e2e', rotate: '-4deg', x: '-30px' },
+  { color: '#2f5d50', rotate: '4deg', x: '30px' },
+  { color: '#5b3f8c', rotate: '12deg', x: '88px' },
 ]
 
 export function AuthShell({ title, subtitle, children }: { title: string; subtitle: ReactNode; children: ReactNode }) {
@@ -14,14 +14,16 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
     <div className="flex min-h-screen flex-col items-center justify-center bg-canvas-100 px-5 py-12">
       <div aria-hidden className="relative mb-8 h-36 w-72">
         {FAN.map((b) => (
-          <img
-            key={b.isbn}
-            src={`https://covers.openlibrary.org/b/isbn/${b.isbn}-M.jpg?default=false`}
-            alt=""
-            onError={(e) => { e.currentTarget.removeAttribute('src') }}
-            className="absolute bottom-0 left-1/2 h-32 w-[86px] rounded-[4px] object-cover shadow-[0_8px_24px_-8px_rgba(0,0,0,0.35)]"
-            style={{ transform: `translateX(calc(-50% + ${b.x})) rotate(${b.rotate})`, background: b.color }}
-          />
+          <div
+            key={b.color}
+            className="absolute bottom-0 left-1/2 h-32 w-[86px] overflow-hidden rounded-[4px] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.35)]"
+            style={{
+              transform: `translateX(calc(-50% + ${b.x})) rotate(${b.rotate})`,
+              background: `linear-gradient(180deg, ${b.color}, color-mix(in srgb, ${b.color} 78%, black))`,
+            }}
+          >
+            <span className="absolute inset-y-0 left-0 w-[3px] bg-gradient-to-r from-black/25 to-transparent" />
+          </div>
         ))}
       </div>
 
