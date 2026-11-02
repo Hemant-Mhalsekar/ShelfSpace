@@ -47,6 +47,10 @@ export function AdminBookPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{b.title}</h1>
           <p className="mt-1 flex items-center gap-3 text-ink-500">{b.author} <Availability book={b} /></p>
+          <Link
+            to={`/admin/activity?entityType=Book&entityId=${b.id}&about=${encodeURIComponent(b.title)}`}
+            className="mt-2 inline-block text-sm font-medium text-accent-600 hover:underline"
+          >View history</Link>
         </div>
         <ConfirmButton loading={remove.isPending} onConfirm={() => remove.mutate()} confirmLabel="Confirm delete">Delete book</ConfirmButton>
       </div>

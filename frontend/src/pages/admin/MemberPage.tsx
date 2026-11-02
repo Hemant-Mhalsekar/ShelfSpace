@@ -36,6 +36,10 @@ export function MemberPage() {
             {m.role === 'ADMIN' && <Badge color="blue">Librarian</Badge>}
           </div>
           <p className="mt-1 text-sm text-ink-500">{m.email}{m.phone ? ` · ${m.phone}` : ''} · joined {formatDate(m.createdAt)}</p>
+          <div className="mt-2 flex gap-4 text-sm font-medium">
+            <Link to={`/admin/activity?entityType=User&entityId=${m.id}&about=${encodeURIComponent(m.name)}`} className="text-accent-600 hover:underline">Account history</Link>
+            <Link to={`/admin/activity?actorId=${m.id}&actor=${encodeURIComponent(m.name)}`} className="text-accent-600 hover:underline">Actions by {m.role === 'ADMIN' ? 'this librarian' : 'this member'}</Link>
+          </div>
         </div>
         {!isSelf && (
           <div className="flex gap-2">

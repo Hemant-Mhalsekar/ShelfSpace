@@ -1,6 +1,6 @@
-import { api } from './client'
+import { api, download } from './client'
 import type {
-  AdminDashboard, AuthResponse, Book, BookInput, Copy, CopyStatus, Fine, FineStatus, FineSummary, Loan, LoanStatus,
+  AdminDashboard, AuditCategory, AuditEntry, AuthResponse, Book, BookInput, Copy, CopyStatus, Fine, FineStatus, FineSummary, Loan, LoanStatus,
   MemberDashboard, MemberDetail, MemberSummary, MembershipTier, Notification, Page, Policy, PolicyInput,
   Recommendation, Reservation, ReturnResult, Role, User, WishlistItem,
 } from './types'
@@ -140,4 +140,21 @@ export const wishlistApi = {
 export const recommendationsApi = {
   forBook: (bookId: number, limit = 5) => api<Recommendation[]>(`/books/${bookId}/recommendations?limit=${limit}`),
   mine: (limit = 6) => api<Recommendation[]>(`/recommendations/me?limit=${limit}`),
+}
+
+export interface AuditSearch {
+  category?: AuditCategory
+  action?: string
+  actorId?: number
+  entityType?: string
+  entityId?: number
+  from?: string
+  to?: string
+  page?: number
+}
+
+export const auditApi = {
+  search: (s: AuditSearch) => api<Page<AuditEntry>>(`/audit${query({ ...s, size: 30 })}`),
+  actions: () => api<string[]>('/audit/actions'),
+  exportCsv: (s: AuditSearch) => download(`/audit/export${query({ ...s, page: undefined })}`),
 }

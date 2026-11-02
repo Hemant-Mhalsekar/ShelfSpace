@@ -42,6 +42,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: '/admin/members', label: 'Members', icon: '' },
   { to: '/admin/fines', label: 'Fines', icon: '' },
   { to: '/admin/rules', label: 'Rules', icon: '' },
+  { to: '/admin/activity', label: 'Activity', icon: '' },
   { to: '/books', label: 'Catalog', icon: '' },
 ]
 
