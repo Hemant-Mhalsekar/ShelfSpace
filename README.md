@@ -70,8 +70,9 @@ docker compose up --build
 | Catalog search with filters, book page with Borrow / Reserve | Dashboard: live stats, top books, 6-month chart |
 | Dashboard: loans, due dates, overdue fines, reservations with queue position | Loan desk: approve/reject requests, check in, mark lost |
 | Renew, cancel requests and reservations | Books: add, edit, add copies, mark copies damaged/lost |
-| Notifications with unread badge; fines | Members: search, profile, tier changes, suspend/reactivate |
-| | Fines (pay/waive) and an editor for borrowing rules |
+| Notifications with unread badge; fines | Members: search, profile, tier changes, suspend/reactivate, password reset |
+| Wishlist and recommendations | Fines (pay/waive) and an editor for borrowing rules |
+| Account: profile, password, sign out other devices, membership limits | Activity: the audit log in plain sentences, filterable, with CSV export |
 
 Frontend development: see [`frontend/README.md`](frontend/README.md). In short: `cd frontend && npm install && npm run dev`, with the API on port 8080.
 
@@ -80,7 +81,7 @@ To run from source instead, you need JDK 21, plus Docker for the database and te
 ```bash
 docker compose up -d mysql
 ./mvnw spring-boot:run      # or: mvn spring-boot:run
-./mvnw test                 # 88 tests; integration tests start their own MySQL
+./mvnw test                 # 134 tests; integration tests start their own MySQL
 ```
 
 > JDK 22+ isn't supported yet: Lombok, used by Spring Boot 3.3, fails to compile on it. With jEnv, the included `.java-version` selects 21 automatically.
@@ -367,6 +368,16 @@ All notifications go through `NotificationService`, so adding email later only t
 | `PUT /api/v1/members/{id}` | Update name, phone or membership tier |
 | `POST /api/v1/members/{id}/suspend` (reason required) and `/activate` | A suspended member can't log in, borrow or reserve, but can still return books |
 | `POST /api/v1/members/{id}/reset-password` | Set a new password for a member who forgot theirs (audited) |
+
+### Audit log (admin)
+
+Every librarian action, plus members' password changes and "sign out other devices", is written to `audit_log` in the same transaction as the change.
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/v1/audit?category=&action=&actorId=&entityType=&entityId=&from=&to=&page=` | Newest first. `category` is `BOOKS`, `LOANS`, `FINES`, `MEMBERS` or `RULES`; dates are inclusive. Each entry includes names (who did it, which book and member) looked up in one query per entity type, and deleted books keep their title |
+| `GET /api/v1/audit/actions` | Action names for the filter menu |
+| `GET /api/v1/audit/export?…` | Same filters as CSV (newest 10,000 rows). Cells starting with `=`, `+`, `-` or `@` are prefixed with `'` so spreadsheets don't run them as formulas |
 
 ### Borrowing rules
 
