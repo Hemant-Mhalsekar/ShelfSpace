@@ -35,7 +35,7 @@ jobs:
           path: target/surefire-reports/
 
   frontend:
-    name: Frontend lint and build
+    name: Frontend lint, test and build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -52,6 +52,8 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
+      # Component tests: jsdom + a mocked API, no backend needed
+      - run: npm test
       # tsc type-check + production build
       - run: npm run build
 
