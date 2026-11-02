@@ -22,6 +22,13 @@ export const authApi = {
   me: () => api<User>('/auth/me'),
 }
 
+export const accountApi = {
+  updateProfile: (body: { name: string; phone: string | null }) =>
+    api<User>('/account/profile', { method: 'PUT', body }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api<void>('/account/password', { method: 'POST', body: { currentPassword, newPassword } }),
+}
+
 export interface BookSearch {
   q?: string
   category?: string
@@ -68,6 +75,7 @@ export const dashboardApi = {
 
 export const policiesApi = {
   list: () => api<Policy[]>('/policies'),
+  get: (tier: MembershipTier) => api<Policy>(`/policies/${tier}`),
   update: (tier: MembershipTier, body: PolicyInput) => api<Policy>(`/policies/${tier}`, { method: 'PUT', body }),
 }
 
@@ -109,6 +117,8 @@ export const membersApi = {
     api<MemberSummary>(`/members/${id}`, { method: 'PUT', body }),
   suspend: (id: number, reason: string) => api<MemberSummary>(`/members/${id}/suspend`, { method: 'POST', body: { reason } }),
   activate: (id: number) => api<MemberSummary>(`/members/${id}/activate`, { method: 'POST' }),
+  resetPassword: (id: number, newPassword: string) =>
+    api<void>(`/members/${id}/reset-password`, { method: 'POST', body: { newPassword } }),
 }
 
 export const adminFinesApi = {
