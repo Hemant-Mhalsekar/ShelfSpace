@@ -1,5 +1,7 @@
 package com.shelfspace.member;
 
+import com.shelfspace.account.AccountService;
+import com.shelfspace.account.dto.ResetPasswordRequest;
 import com.shelfspace.auth.AuthUser;
 import com.shelfspace.common.dto.PageResponse;
 import com.shelfspace.member.dto.CreateMemberRequest;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberController {
 
     private final MemberService memberService;
+    private final AccountService accountService;
 
     @Operation(summary = "Search members by name, email or phone, with loan and fine counts")
     @GetMapping
@@ -79,5 +82,13 @@ public class MemberController {
     @PostMapping("/{id}/activate")
     public MemberSummaryResponse activate(@PathVariable Long id, @AuthenticationPrincipal AuthUser admin) {
         return memberService.activate(id, admin.id());
+    }
+
+    @Operation(summary = "Set a temporary password for a member who is locked out")
+    @PostMapping("/{id}/reset-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetPassword(@PathVariable Long id, @Valid @RequestBody ResetPasswordRequest request,
+                              @AuthenticationPrincipal AuthUser admin) {
+        accountService.resetPassword(id, request.newPassword(), admin.id());
     }
 }

@@ -17,6 +17,7 @@ export function MemberPage() {
   const { user } = useAuth()
   const detail = useQuery({ queryKey: ['members', id], queryFn: () => membersApi.get(id) })
   const [suspending, setSuspending] = useState(false)
+  const [resetting, setResetting] = useState(false)
 
   if (detail.isPending) return <PageLoader />
   if (detail.isError) return <Alert>{errorMessage(detail.error)}</Alert>
@@ -36,9 +37,14 @@ export function MemberPage() {
           </div>
           <p className="mt-1 text-sm text-ink-500">{m.email}{m.phone ? ` · ${m.phone}` : ''} · joined {formatDate(m.createdAt)}</p>
         </div>
-        {!isSelf && (m.status === 'ACTIVE'
-          ? <Button variant="danger" onClick={() => setSuspending(true)}>Suspend</Button>
-          : <ActivateButton memberId={m.id} />)}
+        {!isSelf && (
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => setResetting(true)}>Reset Password</Button>
+            {m.status === 'ACTIVE'
+              ? <Button variant="danger" onClick={() => setSuspending(true)}>Suspend</Button>
+              : <ActivateButton memberId={m.id} />}
+          </div>
+        )}
       </div>
 
       {m.status === 'SUSPENDED' && (
@@ -79,6 +85,7 @@ export function MemberPage() {
       </div>
 
       <SuspendDialog member={m} open={suspending} onClose={() => setSuspending(false)} />
+      <ResetPasswordDialog member={m} open={resetting} onClose={() => setResetting(false)} />
     </>
   )
 }
@@ -191,4 +198,37 @@ function ActivateButton({ memberId }: { memberId: number }) {
     onError: (e) => toast.show(errorMessage(e), 'error'),
   })
   return <Button loading={activate.isPending} onClick={() => activate.mutate()}>Reactivate</Button>
+}
+
+const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,72}$/
+
+function ResetPasswordDialog({ member, open, onClose }: { member: MemberSummary; open: boolean; onClose: () => void }) {
+  const toast = useToast()
+  const [password, setPassword] = useState('')
+  const valid = PASSWORD_RULE.test(password)
+  const close = () => { setPassword(''); reset.reset(); onClose() }
+  const reset = useMutation({
+    mutationFn: () => membersApi.resetPassword(member.id, password),
+    onSuccess: () => { toast.show(`New password set for ${member.name}`); close() },
+  })
+
+  return (
+    <Modal title={`Reset password for ${member.name}?`} open={open} onClose={close}>
+      <p className="mb-4 text-sm text-ink-600">
+        Use this when a member has forgotten their password. Give them the new one in person; they can change it from their Account page.
+      </p>
+      {reset.error && <div className="mb-3"><Alert>{errorMessage(reset.error)}</Alert></div>}
+      <form onSubmit={(e) => { e.preventDefault(); if (valid) reset.mutate() }}>
+        <Field label="New password" error={password && !valid ? 'At least 8 characters, with a letter and a number' : undefined}>
+          <input className={inputClass} type="text" value={password} autoComplete="off" spellCheck={false}
+            onChange={(e) => setPassword(e.target.value)} />
+        </Field>
+        <p className="mt-2 text-xs text-ink-500">The change is recorded in the audit log.</p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button type="button" variant="secondary" onClick={close}>Cancel</Button>
+          <Button type="submit" disabled={!valid} loading={reset.isPending}>Set Password</Button>
+        </div>
+      </form>
+    </Modal>
+  )
 }

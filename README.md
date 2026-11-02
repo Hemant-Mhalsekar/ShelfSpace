@@ -235,6 +235,15 @@ ShelfSpace uses stateless JWT authentication.
 
 Send the access token on every request as `Authorization: Bearer <token>`. In Swagger UI, click **Authorize** and paste the token.
 
+### Your account
+
+| Endpoint | Auth | Description |
+|---|---|---|
+| `PUT /api/v1/account/profile` | Bearer token | Update your name and phone (email can't be changed) |
+| `POST /api/v1/account/password` | Bearer token | Change your password; needs the current one, and the new one must differ |
+
+Passwords are 8 to 72 characters with at least one letter and one digit. Changes are written to the audit log. Tokens already issued stay valid until they expire (15 minutes).
+
 ### Catalog
 
 | Endpoint | Who | Description |
@@ -347,6 +356,7 @@ All notifications go through `NotificationService`, so adding email later only t
 | `POST /api/v1/members` | Add a member at the desk, or another librarian with `role: ADMIN` |
 | `PUT /api/v1/members/{id}` | Update name, phone or membership tier |
 | `POST /api/v1/members/{id}/suspend` (reason required) and `/activate` | A suspended member can't log in, borrow or reserve, but can still return books |
+| `POST /api/v1/members/{id}/reset-password` | Set a new password for a member who forgot theirs (audited) |
 
 ### Borrowing rules
 

@@ -11,6 +11,7 @@ import { LoanDeskPage } from './pages/admin/LoanDeskPage'
 import { MemberPage } from './pages/admin/MemberPage'
 import { MembersPage } from './pages/admin/MembersPage'
 import { RulesPage } from './pages/admin/RulesPage'
+import { AccountPage } from './pages/AccountPage'
 import { BookPage } from './pages/BookPage'
 import { CatalogPage } from './pages/CatalogPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
           { path: '/fines', element: <FinesPage /> },
           { path: '/wishlist', element: <WishlistPage /> },
           { path: '/notifications', element: <NotificationsPage /> },
+          { path: '/account', element: <AccountPage /> },
           {
             path: '/admin',
             element: <RequireAdmin />,
