@@ -42,7 +42,7 @@ export function DashboardPage() {
         {currentLoans.map((l) => <LoanTile key={l.id} loan={l} />)}
       </Shelf>
       {currentLoans.some((l) => l.status === 'ISSUED' || l.status === 'OVERDUE') && (
-        <p className="-mt-2 px-1 text-[13px] text-ink-500">
+        <p className="mt-4 text-[13px] text-ink-500">
           To return a book, bring it to the library desk. It's checked in there, and the loan closes on your account.
         </p>
       )}
