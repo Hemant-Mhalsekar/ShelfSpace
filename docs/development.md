@@ -8,7 +8,7 @@ You need JDK 21, plus Docker for the database and tests:
 docker compose up -d mysql   # from the repo root
 cd backend
 ./mvnw spring-boot:run       # API on http://localhost:8080
-./mvnw test                  # 156 tests; integration tests start their own MySQL
+./mvnw test                  # 157 tests; integration tests start their own MySQL
 ```
 
 > JDK 22+ isn't supported yet: Lombok, used by Spring Boot 3.3, fails to compile on it. With jEnv, `backend/.java-version` selects 21 automatically. `backend/.env.example` lists the environment variables the API reads.
