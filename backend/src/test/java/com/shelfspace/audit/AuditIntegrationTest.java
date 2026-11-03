@@ -69,6 +69,21 @@ class AuditIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    void membersRenewingTheirOwnLoanAreRecorded() throws Exception {
+        var m = newMember();
+        long loanId = issueLoan(m, newBook(1));
+        mockMvc.perform(post("/api/v1/loans/{id}/renew", loanId).header("Authorization", m.token()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/audit").param("actorId", String.valueOf(m.id())).param("action", "LOAN_RENEWED")
+                        .header("Authorization", adminToken()))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].actorName").value("Test Member"))
+                .andExpect(jsonPath("$.content[0].memberId").value(m.id()))
+                .andExpect(jsonPath("$.content[0].details", containsString("newDueDate=")));
+    }
+
+    @Test
     void dateRangeFilters() throws Exception {
         long bookId = newBook(1);
         String today = LocalDate.now().toString();

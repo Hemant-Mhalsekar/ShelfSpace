@@ -193,7 +193,7 @@ All notifications go through `NotificationService`, so adding email later only t
 
 ## Audit log (admin)
 
-Every librarian action, plus members' password changes and "sign out other devices", is written to `audit_log` in the same transaction as the change.
+Every librarian action, plus members' renewals, password changes and "sign out other devices", is written to `audit_log` in the same transaction as the change.
 
 | Endpoint | Description |
 |---|---|

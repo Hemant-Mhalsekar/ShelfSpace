@@ -146,9 +146,8 @@ public class LoanService {
 
         loan.setDueDate(loan.getDueDate().plusDays(policy.getLoanDays()));
         loan.setRenewCount(loan.getRenewCount() + 1);
-        if (user.role() == Role.ADMIN) {
-            auditService.record(user.id(), "LOAN_RENEWED", "Loan", loanId, "newDueDate=" + loan.getDueDate());
-        }
+        // Recorded whether the member renewed it themselves or a librarian did it for them
+        auditService.record(user.id(), "LOAN_RENEWED", "Loan", loanId, "newDueDate=" + loan.getDueDate());
         return toResponse(loan, policy);
     }
 

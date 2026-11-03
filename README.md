@@ -93,7 +93,7 @@ Open **http://localhost:3000** and use the *Member* or *Librarian* demo button. 
 ## Tests
 
 ```bash
-cd backend && ./mvnw test   # 156 backend tests; needs Docker for the MySQL integration tests
+cd backend && ./mvnw test   # 157 backend tests; needs Docker for the MySQL integration tests
 cd frontend && npm test     # 47 frontend component tests; no backend needed
 ```
 
