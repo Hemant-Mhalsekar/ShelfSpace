@@ -97,7 +97,7 @@ Open **http://localhost:3000** and use the *Member* or *Librarian* demo button. 
 cd frontend && npm test     # 47 frontend component tests; no backend needed
 ```
 
-Both run in GitHub Actions on every push.
+There's also a [Playwright end-to-end test](e2e/README.md) that drives a real browser through borrowing, approving and checking in a book. All three run in GitHub Actions on every push.
 
 ## Documentation
 
