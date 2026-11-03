@@ -4,7 +4,7 @@ import { Availability } from '../pages/CatalogPage'
 import { BookCover } from './BookCover'
 
 /** Horizontal, scrollable shelf of covers (like an Apple Books row). */
-export function CoverShelf({ books, caption }: { books: Book[]; caption?: (b: Book) => string | undefined }) {
+function CoverShelf({ books, caption }: { books: Book[]; caption?: (b: Book) => string | undefined }) {
   return (
     <div className="-mx-4 flex snap-x scroll-px-4 gap-5 overflow-x-auto px-4 pb-2 [scrollbar-width:thin]">
       {books.map((book) => (

@@ -32,7 +32,7 @@ export const accountApi = {
   signOutEverywhere: () => api<AuthResponse>('/account/sign-out-everywhere', { method: 'POST' }),
 }
 
-export interface BookSearch {
+interface BookSearch {
   q?: string
   category?: string
   availableOnly?: boolean

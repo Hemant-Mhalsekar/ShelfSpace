@@ -125,18 +125,37 @@ An `audit_log` table also records admin actions: who did what, to which entity, 
 ## Project structure
 
 ```
-src/main/java/com/shelfspace
-├── auth          # register, login, refresh, JWT filter, demo data
-├── member        # users, roles, membership tiers
-├── catalog       # books, copies, ISBN validation, search
-├── circulation   # loans, fines maths, overdue/reminder jobs
-├── reservation   # waiting list, holds, hold-expiry job
-├── fine          # fine ledger: pay / waive
-├── policy        # borrowing rules per tier
-├── notification  # in-app alerts
-├── dashboard     # admin and member stats
-├── audit         # audit trail
-└── common        # security, error handling, paging, clock, scheduling
-src/main/resources/db/migration   # Flyway V1..V6
-frontend/                         # React app (see frontend/README.md)
+ShelfSpace/
+├── backend/                 Spring Boot API (Maven)
+│   ├── src/main/java/com/shelfspace/
+│   │   ├── account          your profile and password
+│   │   ├── audit            audit trail and the activity log API
+│   │   ├── auth             register, login, JWT, refresh-token rotation, rate limits, demo data
+│   │   ├── catalog          books, copies, ISBN validation, search
+│   │   ├── circulation      loans, fine maths, overdue and reminder jobs
+│   │   ├── dashboard        librarian and member stats
+│   │   ├── fine             fine ledger: pay / waive
+│   │   ├── member           users, roles, membership tiers, suspension
+│   │   ├── notification     in-app alerts
+│   │   ├── policy           borrowing rules per tier
+│   │   ├── recommendation   "readers also borrowed"
+│   │   ├── reservation      waiting list, holds, hold-expiry job
+│   │   ├── wishlist         want-to-read list
+│   │   └── common           security, errors, paging, clock, scheduling, field validation
+│   ├── src/main/resources/db/migration   Flyway V1..V6
+│   ├── src/test/java/...    unit and Testcontainers tests, same packages as the code
+│   └── Dockerfile
+├── frontend/                React + TypeScript web app (Vite); tests sit next to the code they test
+│   ├── src/api              typed API client and endpoints
+│   ├── src/auth             session and current user
+│   ├── src/components       shared UI (buttons, fields, covers, layout)
+│   ├── src/lib              formatting and validation helpers
+│   ├── src/pages            member pages; src/pages/admin for librarian pages
+│   └── src/test             test setup: fake API (MSW) and render helper
+├── e2e/                     Playwright end-to-end test
+├── docs/                    API, architecture, testing, deployment, development
+├── docker-compose.yml       MySQL + API + web, for local runs and CI
+└── .github/workflows/ci.yml backend tests, frontend tests, Docker build and end-to-end test
 ```
+
+Each backend feature package holds its own entity, repository, service, controller and `dto/` package, so a feature can be read top to bottom in one place.

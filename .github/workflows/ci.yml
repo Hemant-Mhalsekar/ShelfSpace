@@ -11,8 +11,11 @@ permissions:
 
 jobs:
   test:
-    name: Build and test
+    name: Backend build and test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
 
@@ -22,6 +25,7 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
+          cache-dependency-path: backend/pom.xml
 
       # Unit + integration tests. Testcontainers starts MySQL using the runner's Docker.
       - name: mvn verify
@@ -32,7 +36,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports
-          path: target/surefire-reports/
+          path: backend/target/surefire-reports/
 
   frontend:
     name: Frontend lint, test and build

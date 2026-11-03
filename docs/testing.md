@@ -3,6 +3,7 @@
 ## Backend
 
 ```bash
+cd backend
 ./mvnw verify
 ```
 
