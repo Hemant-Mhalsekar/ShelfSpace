@@ -93,11 +93,11 @@ Open **http://localhost:3000** and use the *Member* or *Librarian* demo button. 
 ## Tests
 
 ```bash
-./mvnw test                 # 156 backend tests; needs Docker for the MySQL integration tests
+cd backend && ./mvnw test   # 156 backend tests; needs Docker for the MySQL integration tests
 cd frontend && npm test     # 47 frontend component tests; no backend needed
 ```
 
-Both run in GitHub Actions on every push.
+There's also a [Playwright end-to-end test](e2e/README.md) that drives a real browser through borrowing, approving and checking in a book. All three run in GitHub Actions on every push.
 
 ## Documentation
 

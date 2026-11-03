@@ -1,0 +1,8 @@
+# Only pom.xml and src/ are needed to build the image
+target/
+.idea/
+*.iml
+.vscode/
+.env
+build.log
+*.md

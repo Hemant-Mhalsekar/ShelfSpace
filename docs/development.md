@@ -2,15 +2,16 @@
 
 ## Running from source
 
-To run from source instead, you need JDK 21, plus Docker for the database and tests:
+You need JDK 21, plus Docker for the database and tests:
 
 ```bash
-docker compose up -d mysql
-./mvnw spring-boot:run      # or: mvn spring-boot:run
-./mvnw test                 # 156 tests; integration tests start their own MySQL
+docker compose up -d mysql   # from the repo root
+cd backend
+./mvnw spring-boot:run       # API on http://localhost:8080
+./mvnw test                  # 156 tests; integration tests start their own MySQL
 ```
 
-> JDK 22+ isn't supported yet: Lombok, used by Spring Boot 3.3, fails to compile on it. With jEnv, the included `.java-version` selects 21 automatically.
+> JDK 22+ isn't supported yet: Lombok, used by Spring Boot 3.3, fails to compile on it. With jEnv, `backend/.java-version` selects 21 automatically. `backend/.env.example` lists the environment variables the API reads.
 
 Useful URLs while it runs:
 

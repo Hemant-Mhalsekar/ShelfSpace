@@ -7,16 +7,16 @@ import { COMMON_PASSWORDS } from './common-passwords'
 
 export interface Person { name?: string | null; email?: string | null }
 
-export const PASSWORD_MIN = 8
-export const PASSWORD_MAX = 72
+const PASSWORD_MIN = 8
+const PASSWORD_MAX = 72
 
-export function isCommonPassword(password: string) {
+function isCommonPassword(password: string) {
   const lower = password.toLowerCase()
   const base = lower.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '')
   return COMMON_PASSWORDS.has(base) || COMMON_PASSWORDS.has(lower)
 }
 
-export function containsPersonal(password: string, { name, email }: Person = {}) {
+function containsPersonal(password: string, { name, email }: Person = {}) {
   const pw = password.toLowerCase()
   const emailName = (email ?? '').trim().toLowerCase().split('@')[0] ?? ''
   if (emailName.length >= 3 && pw.includes(emailName)) return true

@@ -7,7 +7,7 @@
 | MySQL | **Aiven** (free MySQL) | 1 GB storage; SSL required |
 
 1. **Aiven:** create a free MySQL service and note its host, port, user, password and database (`defaultdb`).
-2. **Render:** **New → Web Service →** this repo, runtime **Docker**, branch `main`, health check path `/actuator/health`. Environment:
+2. **Render:** **New → Web Service →** this repo, runtime **Docker**, branch `main`, **Root Directory** `backend`, health check path `/actuator/health`. Environment:
 
    | Variable | Value |
    |---|---|
