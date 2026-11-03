@@ -28,18 +28,6 @@ export function Button({
   )
 }
 
-/** A link that looks like a primary button (avoids nesting a <button> inside an <a>). */
-export function LinkButton({ to, children }: { to: string; children: ReactNode }) {
-  return (
-    <Link
-      to={to}
-      className={`inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-150 ${variants.primary}`}
-    >
-      {children}
-    </Link>
-  )
-}
-
 /** Grouped-list surface: white, rounded, separated from the grey page by a faint hairline. */
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`rounded-2xl bg-canvas-50 ring-1 ring-black/[0.06] ${className}`}>{children}</div>
@@ -86,7 +74,7 @@ const badgeColors = {
   gray: 'bg-canvas-200 text-ink-600',
 } as const
 
-export type BadgeColor = keyof typeof badgeColors
+type BadgeColor = keyof typeof badgeColors
 
 export function Badge({ color = 'gray', children }: { color?: BadgeColor; children: ReactNode }) {
   return (

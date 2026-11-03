@@ -62,7 +62,7 @@ The server checks every field; the web app shows the same rules while typing, so
 
 | Field | Rule |
 |---|---|
-| Password (sign-up, add member, change, reset) | 8-72 characters, an uppercase and a lowercase letter, a number, no space at the start or end. Common passwords are refused, even with numbers or symbols around them (`Password123!`, `Welcome1`); the list is in `src/main/resources/validation/common-passwords.txt`. It also can't contain the person's name or the part of their email before the @ |
+| Password (sign-up, add member, change, reset) | 8-72 characters, an uppercase and a lowercase letter, a number, no space at the start or end. Common passwords are refused, even with numbers or symbols around them (`Password123!`, `Welcome1`); the list is in `backend/src/main/resources/validation/common-passwords.txt`. It also can't contain the person's name or the part of their email before the @ |
 | Name | 2-100 characters after trimming, starting with a letter; letters in any language, spaces, apostrophes, hyphens and dots (`Zoë O'Brien-Nair`) |
 | Email | Needs a domain with a dot and a 2+ letter ending (`name@gmail` is refused). Sign-in only needs an @, so older accounts still work |
 | Phone | Optional; 10-15 digits, optionally starting with + |

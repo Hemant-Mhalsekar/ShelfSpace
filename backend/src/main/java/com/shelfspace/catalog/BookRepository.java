@@ -7,12 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 /** Soft-deleted books are hidden automatically by @SQLRestriction on {@link Book}. */
 public interface BookRepository extends JpaRepository<Book, Long> {
-
-    Optional<Book> findByIsbn(String isbn);
 
     boolean existsByIsbn(String isbn);
 

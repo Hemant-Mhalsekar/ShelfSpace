@@ -6,7 +6,7 @@ React frontend for the ShelfSpace API.
 
 ## Run it
 
-You need Node 22+ and the API running on `localhost:8080` (`docker compose up` from the repo root, or `./mvnw spring-boot:run`).
+You need Node 22+ and the API running on `localhost:8080` (`docker compose up` from the repo root, or `./mvnw spring-boot:run` in `backend/`).
 
 ```bash
 npm install

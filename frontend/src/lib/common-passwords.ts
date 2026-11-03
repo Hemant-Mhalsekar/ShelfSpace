@@ -1,6 +1,6 @@
 /**
  * Base words of the most common passwords. Keep in sync with
- * src/main/resources/validation/common-passwords.txt (the server checks the same list).
+ * backend/src/main/resources/validation/common-passwords.txt (the server checks the same list).
  */
 export const COMMON_PASSWORDS = new Set([
   'password', 'passw0rd', 'pass', 'qwerty', 'qwertyuiop', 'asdfgh', 'asdfghjkl', 'zxcvbnm', 'letmein', 'welcome',
